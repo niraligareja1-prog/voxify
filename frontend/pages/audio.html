@@ -721,6 +721,9 @@
 
     let recordingSeconds = 0;
 
+    // Keep transcription text available to every processing branch.
+    let sourceText = "";
+
 
     const audioFile =
       document.getElementById(
@@ -1584,7 +1587,7 @@
           data.detected_language;
 
 
-        const sourceText =
+        sourceText =
           (
             data.transcribed_text ||
             ""
