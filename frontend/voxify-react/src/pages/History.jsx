@@ -335,7 +335,7 @@ function History() {
                   className="secondary-button"
                   onClick={() => {
                     window.location.href =
-                      "/pages/text-translation.html?mode=text-to-text";
+                      "/text-translation";
                   }}
                 >
                   Start translating
