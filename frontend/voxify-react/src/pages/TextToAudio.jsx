@@ -195,7 +195,56 @@ function TextToAudio() {
       }
 
       // ---------------------------------------------------------
-      // STEP 3: Generate audio
+      // STEP 3: Save translated text to Supabase Storage
+      // ---------------------------------------------------------
+
+      const authToken =
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("voxify_access_token");
+
+      if (authToken) {
+        const textBlob = new Blob(
+          [translated],
+          { type: "text/plain" }
+        );
+
+        const textFile = new File(
+          [textBlob],
+          `voxify-${Date.now()}.txt`,
+          { type: "text/plain" }
+        );
+
+        const storageForm = new FormData();
+        storageForm.append("file", textFile);
+
+        try {
+          const storageResponse = await fetch(
+            `${API_BASE_URL}/storage/upload`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+              body: storageForm,
+            }
+          );
+
+          if (!storageResponse.ok) {
+            console.warn(
+              "Supabase Storage upload failed:",
+              await storageResponse.text()
+            );
+          }
+        } catch (storageError) {
+          console.warn(
+            "Supabase Storage upload error:",
+            storageError
+          );
+        }
+      }
+
+      // ---------------------------------------------------------
+      // STEP 4: Generate audio
       // ---------------------------------------------------------
 
       const audioResponse = await fetch(
