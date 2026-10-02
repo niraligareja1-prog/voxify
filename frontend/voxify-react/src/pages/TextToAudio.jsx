@@ -423,7 +423,7 @@ function TextToAudio() {
 
       if (err instanceof TypeError) {
         setError(
-          "Cannot connect to Voxify backend. Please make sure FastAPI is running on http://127.0.0.1:8000."
+          "Cannot connect to Voxify backend. Please make sure FastAPI is running on port 8000."
         );
       } else {
         setError(
