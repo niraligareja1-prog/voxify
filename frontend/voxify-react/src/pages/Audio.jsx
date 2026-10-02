@@ -691,6 +691,7 @@ function Audio() {
             },
             body: JSON.stringify({
               text,
+              source_language: detected,
               target_language:
                 targetLanguage,
             }),
