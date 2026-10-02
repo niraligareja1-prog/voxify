@@ -630,6 +630,41 @@ function Audio() {
         selectedFile
       );
 
+      // Save the original uploaded/recorded audio in Supabase Storage.
+      const authToken =
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("voxify_access_token");
+
+      if (authToken) {
+        try {
+          const storageForm = new FormData();
+          storageForm.append("file", selectedFile);
+
+          const storageResponse = await fetch(
+            `${API_BASE_URL}/storage/upload`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+              body: storageForm,
+            }
+          );
+
+          if (!storageResponse.ok) {
+            console.warn(
+              "Audio source storage upload failed:",
+              await storageResponse.text()
+            );
+          }
+        } catch (storageError) {
+          console.warn(
+            "Audio source storage upload error:",
+            storageError
+          );
+        }
+      }
+
       const transcriptionResponse =
         await fetch(
           `${API_BASE_URL}/audio/transcribe`,
@@ -784,6 +819,43 @@ function Audio() {
       setOutputAudioUrl(
         outputUrl
       );
+
+      // Save generated translated audio in Supabase Storage.
+      if (authToken) {
+        try {
+          const outputFile = new File(
+            [outputBlob],
+            `voxify-translated-audio-${Date.now()}.mp3`,
+            { type: "audio/mpeg" }
+          );
+
+          const storageForm = new FormData();
+          storageForm.append("file", outputFile);
+
+          const storageResponse = await fetch(
+            `${API_BASE_URL}/storage/upload`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+              body: storageForm,
+            }
+          );
+
+          if (!storageResponse.ok) {
+            console.warn(
+              "Generated audio storage upload failed:",
+              await storageResponse.text()
+            );
+          }
+        } catch (storageError) {
+          console.warn(
+            "Generated audio storage upload error:",
+            storageError
+          );
+        }
+      }
 
       setStatus(
         "Audio translated successfully."
