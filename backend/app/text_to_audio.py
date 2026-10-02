@@ -73,6 +73,92 @@ class TextToAudioRequest(BaseModel):
 
 
 # ---------------------------------------------------------
+# DIRECT SPEECH REQUEST
+# ---------------------------------------------------------
+
+class SpeechAudioRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=5000)
+    language: str = Field(
+        ...,
+        description="Target speech language code: en-IN, hi-IN, gu-IN, mr-IN, ta-IN",
+    )
+
+
+async def _generate_speech_only(text: str, language: str) -> bytes:
+    """Convert already-translated text directly to speech."""
+    text = text.strip()
+    language = language.strip()
+
+    if not text:
+        raise HTTPException(status_code=400, detail="Text cannot be empty.")
+
+    if language not in SUPPORTED_LANGUAGES:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Unsupported language: {language}. "
+                f"Supported languages: {', '.join(sorted(SUPPORTED_LANGUAGES))}"
+            ),
+        )
+
+    voice = VOICE_MAP[language]
+
+    temp_file = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
+    output_path = Path(temp_file.name)
+    temp_file.close()
+
+    try:
+        communicate = edge_tts.Communicate(text, voice)
+        await communicate.save(str(output_path))
+
+        if not output_path.exists() or output_path.stat().st_size == 0:
+            raise RuntimeError("Generated audio file is empty.")
+
+        return output_path.read_bytes()
+
+    finally:
+        try:
+            if output_path.exists():
+                os.remove(output_path)
+        except OSError:
+            pass
+
+
+@router.post("/generate-speech")
+async def generate_speech(request: SpeechAudioRequest):
+    """
+    Convert text that is ALREADY in the target language directly to MP3.
+
+    This endpoint is used by Audio -> Audio so the translated text is
+    not translated a second time.
+    """
+    try:
+        audio_bytes = await _generate_speech_only(
+            request.text,
+            request.language,
+        )
+
+        return Response(
+            content=audio_bytes,
+            media_type="audio/mpeg",
+            headers={
+                "Cache-Control": "no-store",
+                "X-Voxify-Target-Language": request.language,
+            },
+        )
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        print("Direct speech generation error:", str(error))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Speech generation failed: {error}",
+        ) from error
+
+
+# ---------------------------------------------------------
 # SIMPLE INPUT LANGUAGE DETECTION
 # ---------------------------------------------------------
 
