@@ -274,6 +274,47 @@ function TextTranslation() {
 
       setTranslatedText(data.translated_text);
 
+      // Save translated text through the authenticated storage API.
+      const authToken =
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("voxify_access_token");
+
+      if (authToken) {
+        try {
+          const textFile = new File(
+            [data.translated_text],
+            `voxify-translation-${Date.now()}.txt`,
+            { type: "text/plain" }
+          );
+
+          const storageForm = new FormData();
+          storageForm.append("file", textFile);
+
+          const storageResponse = await fetch(
+            `${API_BASE_URL}/storage/upload`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+              body: storageForm,
+            }
+          );
+
+          if (!storageResponse.ok) {
+            console.warn(
+              "Translation storage upload failed:",
+              await storageResponse.text()
+            );
+          }
+        } catch (storageError) {
+          console.warn(
+            "Translation storage upload error:",
+            storageError
+          );
+        }
+      }
+
       if (data?.source_language_name) {
         setDetectedLanguage(data.source_language_name);
       } else if (data?.source_language) {
