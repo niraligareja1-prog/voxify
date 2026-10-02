@@ -64,6 +64,56 @@ function History() {
     loadHistory();
   }, []);
 
+  const syncLatestTranslation = async () => {
+    const token = getToken();
+
+    if (!token) {
+      return;
+    }
+
+    const latestText =
+      localStorage.getItem("voxify_latest_translation");
+
+    if (!latestText) {
+      return;
+    }
+
+    try {
+      const payload = JSON.parse(latestText);
+
+      if (
+        !payload?.original_text ||
+        !payload?.translated_text ||
+        !payload?.source_language ||
+        !payload?.target_language
+      ) {
+        return;
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/history`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (response.ok) {
+        localStorage.removeItem("voxify_latest_translation");
+        await loadHistory();
+      }
+    } catch (syncError) {
+      console.warn(
+        "HISTORY SYNC ERROR:",
+        syncError
+      );
+    }
+  };
+
   const deleteHistory = async (historyId) => {
     const token = getToken();
 
