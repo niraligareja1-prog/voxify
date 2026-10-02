@@ -753,6 +753,40 @@ function Audio() {
         translated
       );
 
+      // Save Audio translation to history.
+      if (authToken) {
+        try {
+          const historyResponse = await fetch(
+            `${API_BASE_URL}/history`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+              },
+              body: JSON.stringify({
+                source_language: detected,
+                target_language: targetLanguage,
+                original_text: text,
+                translated_text: translated,
+              }),
+            }
+          );
+
+          if (!historyResponse.ok) {
+            console.warn(
+              "Audio history save failed:",
+              await historyResponse.text()
+            );
+          }
+        } catch (historyError) {
+          console.warn(
+            "Audio history save error:",
+            historyError
+          );
+        }
+      }
+
       // Generate target-language audio
       setStatus(
         "Generating translated audio..."
