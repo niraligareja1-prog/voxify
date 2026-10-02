@@ -4,3 +4,8 @@ uvicorn[standard]==0.53.0
 pydantic-settings==2.15.0
 python-dotenv==1.2.3
 python-multipart==0.0.32
+
+# Audio -> Text
+# SpeechService uses faster-whisper and PyAV directly.
+faster-whisper==1.2.1
+av==17.1.0
