@@ -348,6 +348,48 @@ function TextToAudio() {
         URL.createObjectURL(audioBlob);
 
       setAudioUrl(url);
+
+      // Save generated Text-to-Audio MP3 in Supabase Storage.
+      const generatedAudioToken =
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("voxify_access_token");
+
+      if (generatedAudioToken) {
+        try {
+          const generatedFile = new File(
+            [audioBlob],
+            `voxify-text-to-audio-${Date.now()}.mp3`,
+            { type: "audio/mpeg" }
+          );
+
+          const generatedForm = new FormData();
+          generatedForm.append("file", generatedFile);
+
+          const generatedResponse = await fetch(
+            `${API_BASE_URL}/storage/upload`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${generatedAudioToken}`,
+              },
+              body: generatedForm,
+            }
+          );
+
+          if (!generatedResponse.ok) {
+            console.warn(
+              "Generated audio storage upload failed:",
+              await generatedResponse.text()
+            );
+          }
+        } catch (storageError) {
+          console.warn(
+            "Generated audio storage upload error:",
+            storageError
+          );
+        }
+      }
+
       setError("");
 
       console.log(
