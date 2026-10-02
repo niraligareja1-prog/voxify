@@ -30,8 +30,30 @@ function typeName(item){const mime=(item.mime_type||"").toLowerCase();if(mime.in
 function formatSize(bytes){const n=Number(bytes||0);if(!n)return "0 KB";if(n<1024*1024)return (n/1024).toFixed(1)+" KB";return (n/(1024*1024)).toFixed(1)+" MB";}
 function formatDate(value){if(!value)return "";const d=new Date(value);return Number.isNaN(d.getTime())?value:d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});}
 function escapeHtml(value){return String(value).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m];});}
-async function loadFiles(){const t=token();if(!t){location.replace("/pages/login.html");return;}const error=document.getElementById("error");const content=document.getElementById("content");error.style.display="none";content.innerHTML="<div class='empty'>Loading your downloads...</div>";try{const res=await fetch(API_BASE_URL+"/storage/files",{headers:{Authorization:"Bearer "+t,Accept:"application/json"}});const data=await res.json();if(!res.ok||!data.success)throw new Error(data.detail||"Failed to load downloads.");const files=Array.isArray(data.data)?data.data:[];if(!files.length){content.innerHTML="<div class='empty'><h2>No downloads yet</h2><p>Files you upload or generate in Voxify will appear here.</p></div>";return;}const grid=document.createElement("div");grid.className="grid";files.forEach(function(item){const card=document.createElement("div");card.className="card";const safeName=escapeHtml(item.file_name||"Unnamed file");card.innerHTML="<div class='row'><span class='type'>"+typeName(item)+"</span><span class='meta'>"+formatSize(item.file_size)+"</span></div><div class='name'>"+safeName+"</div><div class='meta'>"+escapeHtml(item.storage_path||"")+"<br>"+escapeHtml(formatDate(item.created_at))+"</div>";const button=document.createElement("button");button.className="download";button.textContent="↓ Download";button.disabled=!item.download_url;button.onclick=function(){if(item.download_url)downloadFile(item.download_url,item.file_name||"voxify-file");};card.appendChild(button);grid.appendChild(card);});content.innerHTML="";content.appendChild(grid);}catch(err){error.textContent=err.message||"Failed to load downloads.";error.className="status error";content.innerHTML="";}}
-function downloadFile(url,fileName){const a=document.createElement("a");a.href=url;a.download=fileName||"voxify-file";a.target="_blank";document.body.appendChild(a);a.click();a.remove();}
+async function loadFiles(){const t=token();if(!t){location.replace("/pages/login.html");return;}const error=document.getElementById("error");const content=document.getElementById("content");error.style.display="none";content.innerHTML="<div class='empty'>Loading your downloads...</div>";try{const res=await fetch(API_BASE_URL+"/storage/files",{headers:{Authorization:"Bearer "+t,Accept:"application/json"}});const data=await res.json();if(!res.ok||!data.success)throw new Error(data.detail||"Failed to load downloads.");const files=Array.isArray(data.data)?data.data:[];if(!files.length){content.innerHTML="<div class='empty'><h2>No downloads yet</h2><p>Files you upload or generate in Voxify will appear here.</p></div>";return;}const grid=document.createElement("div");grid.className="grid";files.forEach(function(item){const card=document.createElement("div");card.className="card";const safeName=escapeHtml(item.file_name||"Unnamed file");card.innerHTML="<div class='row'><span class='type'>"+typeName(item)+"</span><span class='meta'>"+formatSize(item.file_size)+"</span></div><div class='name'>"+safeName+"</div><div class='meta'>"+escapeHtml(item.storage_path||"")+"<br>"+escapeHtml(formatDate(item.created_at))+"</div>";const button=document.createElement("button");button.className="download";button.textContent="↓ Download";button.disabled=!item.download_url;button.onclick=function(){downloadFile(item.id,item.file_name||"voxify-file");};card.appendChild(button);grid.appendChild(card);});content.innerHTML="";content.appendChild(grid);}catch(err){error.textContent=err.message||"Failed to load downloads.";error.className="status error";content.innerHTML="";}}
+async function downloadFile(fileId,fileName){
+  const t=token();
+  if(!t||!fileId)return;
+  try{
+    const res=await fetch(API_BASE_URL+"/storage/download/"+encodeURIComponent(fileId),{
+      headers:{Authorization:"Bearer "+t,Accept:"application/json"}
+    });
+    const data=await res.json();
+    if(!res.ok||!data.success||!data.data?.download_url)throw new Error(data.detail||"Download failed.");
+    const a=document.createElement("a");
+    a.href=data.data.download_url;
+    a.download=fileName||data.data.file_name||"voxify-file";
+    a.target="_blank";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }catch(err){
+    const error=document.getElementById("error");
+    error.textContent=err.message||"Download failed.";
+    error.className="status error";
+    error.style.display="block";
+  }
+}
 loadFiles();
 </script>
 </body>
