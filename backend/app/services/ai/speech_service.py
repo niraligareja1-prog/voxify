@@ -105,7 +105,9 @@ class SpeechService:
                 "min_silence_duration_ms": 500,
             },
 
-            temperature=0.0,
+            # Try deterministic decoding first, then slightly warmer
+            # fallbacks when Whisper detects a poor/repetitive decode.
+            temperature=(0.0, 0.2, 0.4, 0.6),
 
             # Speech -> text only
             task="transcribe",
@@ -113,11 +115,16 @@ class SpeechService:
             # Automatic language detection
             language=None,
 
-            condition_on_previous_text=True,
+            # Important for short clips: carrying previous decoded text
+            # can cause repeated/hallucinated phrases.
+            condition_on_previous_text=False,
 
             no_speech_threshold=0.6,
 
-            compression_ratio_threshold=2.4,
+            compression_ratio_threshold=2.0,
+
+            # Reduce repeated-token loops on noisy/very short recordings.
+            repetition_penalty=1.15,
         )
 
         # ----------------------------------------------------
