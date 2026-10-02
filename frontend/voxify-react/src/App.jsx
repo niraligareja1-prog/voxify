@@ -580,20 +580,20 @@ function App() {
 
         <div className="sidebar-bottom">
 
-          {/* SETTINGS */}
+          {/* LOGOUT */}
 
           <button
             className="nav-item"
-            onClick={() =>
-              goToPage("settings.html")
-            }
+            onClick={() => {
+              localStorage.removeItem("access_token");
+              localStorage.removeItem("voxify_access_token");
+              localStorage.removeItem("user_email");
+              localStorage.removeItem("preferred_language");
+              window.location.replace("/pages/login.html");
+            }}
           >
             <Settings size={20} />
-
-            <span>
-              {t.settings}
-            </span>
-
+            <span>Logout</span>
           </button>
 
 
