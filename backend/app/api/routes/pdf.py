@@ -693,7 +693,46 @@ async def translate_pdf_file(
         if current_user:
             user_id = str(current_user.id)
             output_filename = translated_filename(file.filename)
-            storage_path = f"pdf/{user_id}/{uuid.uuid4()}_{output_filename}"
+            # Store the original uploaded PDF.
+            original_filename = safe_filename(file.filename)
+            original_storage_path = (
+                f"pdf/{user_id}/"
+                f"{uuid.uuid4()}_original_{original_filename}"
+            )
+
+            supabase_admin.storage.from_("voxify-files").upload(
+                original_storage_path,
+                pdf_bytes,
+                file_options={
+                    "content-type": "application/pdf",
+                    "upsert": "false",
+                },
+            )
+
+            original_record = supabase_admin.table("file_uploads").insert({
+                "user_id": user_id,
+                "original_file_name": file.filename,
+                "storage_path": original_storage_path,
+                "mime_type": "application/pdf",
+                "file_size": len(pdf_bytes),
+            }).execute()
+
+            if not original_record.data:
+                try:
+                    supabase_admin.storage.from_("voxify-files").remove(
+                        [original_storage_path]
+                    )
+                except Exception:
+                    pass
+                raise RuntimeError(
+                    "Original PDF metadata could not be saved."
+                )
+
+            # Store the translated/generated PDF.
+            storage_path = (
+                f"pdf/{user_id}/"
+                f"{uuid.uuid4()}_{output_filename}"
+            )
 
             supabase_admin.storage.from_("voxify-files").upload(
                 storage_path,
