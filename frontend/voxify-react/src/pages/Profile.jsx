@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "../config";
 import {
   User,
   Mail,
@@ -12,7 +13,6 @@ import {
 
 import "../App.css";
 
-const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
 
 const LANGUAGE_OPTIONS = [
   { value: "en-IN", label: "English" },
