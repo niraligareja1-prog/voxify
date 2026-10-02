@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Voxify — PDF Summarise</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #18243a;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        /* =========================
+           TOP BAR
+        ========================= */
+
+        .topbar {
+            height: 102px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5eaf2;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 46px;
+        }
+
+        .logo {
+            color: #2f6fec;
+            font-size: 36px;
+            font-weight: 800;
+            text-decoration: none;
+            letter-spacing: -1px;
+        }
+
+        .back-btn {
+            border: 0;
+            background: #eef4ff;
+            color: #2563eb;
+
+            border-radius: 14px;
+            padding: 14px 24px;
+
+            font-size: 16px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            background: #e3edff;
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .container {
+            max-width: 1370px;
+            margin: 0 auto;
+            padding: 44px 30px 70px;
+        }
+
+        .page-title {
+            margin: 0;
+
+            text-align: center;
+
+            font-size: 44px;
+            line-height: 1.15;
+
+            font-weight: 800;
+
+            color: #14213a;
+        }
+
+        .subtitle {
+            margin: 12px auto 38px;
+
+            text-align: center;
+
+            color: #64748b;
+
+            font-size: 20px;
+            line-height: 1.5;
+        }
+
+        /* =========================
+           CARD
+        ========================= */
+
+        .card {
+            background: #ffffff;
+
+            border-radius: 24px;
+
+            padding: 34px;
+
+            box-shadow:
+                0 8px 30px rgba(28, 51, 84, 0.08);
+
+            margin-bottom: 28px;
+        }
+
+        /* =========================
+           UPLOAD
+        ========================= */
+
+        .upload-box {
+            min-height: 305px;
+
+            border: 2px dashed #b9cdf5;
+
+            border-radius: 20px;
+
+            background: #fbfdff;
+
+            display: flex;
+            flex-direction: column;
+
+            align-items: center;
+            justify-content: center;
+
+            cursor: pointer;
+
+            transition: 0.2s ease;
+
+            text-align: center;
+        }
+
+        .upload-box:hover,
+        .upload-box.dragover {
+            border-color: #2f6fec;
+            background: #f6f9ff;
+        }
+
+        .upload-icon {
+            width: 68px;
+            height: 68px;
+
+            border-radius: 14px;
+
+            background: #eee8f7;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 34px;
+
+            margin-bottom: 18px;
+        }
+
+        .upload-title {
+            font-size: 28px;
+            font-weight: 800;
+
+            color: #17233a;
+        }
+
+        .upload-text {
+            margin-top: 10px;
+
+            color: #64748b;
+
+            font-size: 18px;
+        }
+
+        .upload-limit {
+            margin-top: 12px;
+
+            color: #94a3b8;
+
+            font-size: 16px;
+        }
+
+        #pdfInput {
+            display: none;
+        }
+
+        /* =========================
+           FILE INFO
+        ========================= */
+
+        .file-info {
+            display: none;
+
+            margin-top: 20px;
+
+            padding: 18px 20px;
+
+            border: 1px solid #e4e9f1;
+
+            border-radius: 16px;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+        }
+
+        .file-details {
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+            min-width: 0;
+        }
+
+        .pdf-icon {
+            width: 48px;
+            height: 48px;
+
+            border-radius: 12px;
+
+            background: #fff0f0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 24px;
+
+            flex: 0 0 auto;
+        }
+
+        .file-name {
+            font-size: 17px;
+            font-weight: 700;
+
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            max-width: 760px;
+        }
+
+        .file-size {
+            margin-top: 4px;
+
+            color: #64748b;
+
+            font-size: 14px;
+        }
+
+        .remove-btn {
+            border: 0;
+
+            background: #fef2f2;
+
+            color: #dc2626;
+
+            border-radius: 10px;
+
+            padding: 10px 14px;
+
+            cursor: pointer;
+
+            font-weight: 700;
+        }
+
+        /* =========================
+           SUMMARISE BUTTON
+        ========================= */
+
+        .summarise-btn {
+            width: 100%;
+
+            margin-top: 28px;
+
+            border: 0;
+
+            border-radius: 14px;
+
+            padding: 17px 24px;
+
+            background: #2f6fec;
+
+            color: #ffffff;
+
+            font-size: 18px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+        }
+
+        .summarise-btn:hover {
+            background: #245ed0;
+        }
+
+        .summarise-btn:disabled {
+            opacity: 0.6;
+
+            cursor: not-allowed;
+        }
+
+        /* =========================
+           LOADING
+        ========================= */
+
+        .loading {
+            display: none;
+
+            text-align: center;
+
+            padding: 24px 10px 4px;
+        }
+
+        .spinner {
+            width: 34px;
+            height: 34px;
+
+            border: 4px solid #dbe7ff;
+
+            border-top-color: #2f6fec;
+
+            border-radius: 50%;
+
+            animation: spin 0.8s linear infinite;
+
+            margin: 0 auto 14px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-title {
+            font-weight: 800;
+
+            font-size: 18px;
+        }
+
+        .loading-text {
+            margin-top: 7px;
+
+            color: #64748b;
+        }
+
+        /* =========================
+           ERROR
+        ========================= */
+
+        .error-box {
+            display: none;
+
+            margin-top: 20px;
+
+            background: #fff1f2;
+
+            border: 1px solid #fecdd3;
+
+            color: #be123c;
+
+            border-radius: 14px;
+
+            padding: 15px 18px;
+
+            line-height: 1.5;
+        }
+
+        /* =========================
+           RESULT
+        ========================= */
+
+        .result-section {
+            display: none;
+
+            padding: 34px;
+        }
+
+        .result-title {
+            font-size: 28px;
+
+            font-weight: 800;
+
+            margin-bottom: 20px;
+        }
+
+        .success-box {
+            background: #ecfdf5;
+
+            border: 1px solid #bbf7d0;
+
+            color: #166534;
+
+            border-radius: 14px;
+
+            padding: 16px 18px;
+
+            margin-bottom: 24px;
+        }
+
+        .result-box {
+            border: 1px solid #e1e7f0;
+
+            border-radius: 18px;
+
+            overflow: hidden;
+
+            margin-bottom: 22px;
+        }
+
+        .result-box-header {
+            background: #f8fafc;
+
+            border-bottom: 1px solid #e1e7f0;
+
+            padding: 15px 18px;
+
+            font-weight: 800;
+
+            font-size: 17px;
+        }
+
+        .summary-text,
+        .extracted-text {
+            padding: 20px;
+
+            white-space: pre-wrap;
+
+            word-break: break-word;
+
+            line-height: 1.75;
+
+            color: #334155;
+
+            font-size: 16px;
+
+            max-height: 520px;
+
+            overflow-y: auto;
+        }
+
+        .summary-text {
+            font-size: 18px;
+
+            color: #17233a;
+        }
+
+        /* =========================
+           RESULT ACTIONS
+        ========================= */
+
+        .result-actions {
+            display: flex;
+
+            gap: 12px;
+
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            border: 0;
+
+            border-radius: 12px;
+
+            padding: 13px 18px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .new-btn {
+            background: #eef4ff;
+
+            color: #2563eb;
+        }
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 800px) {
+
+            .topbar {
+                padding: 0 20px;
+
+                height: 82px;
+            }
+
+            .logo {
+                font-size: 30px;
+            }
+
+            .container {
+                padding: 30px 16px 50px;
+            }
+
+            .page-title {
+                font-size: 34px;
+            }
+
+            .subtitle {
+                font-size: 17px;
+            }
+
+            .card {
+                padding: 20px;
+
+                border-radius: 18px;
+            }
+
+            .upload-box {
+                min-height: 250px;
+            }
+
+            .file-info {
+                align-items: flex-start;
+            }
+
+            .file-name {
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- =========================
+         HEADER
+    ========================= -->
+
+    <header class="topbar">
+
+        <a
+            href="../index.html"
+            class="logo"
+        >
+            Voxify
+        </a>
+
+        <button
+            class="back-btn"
+            id="backBtn"
+            type="button"
+        >
+            ← Back
+        </button>
+
+    </header>
+
+
+    <!-- =========================
+         MAIN
+    ========================= -->
+
+    <main class="container">
+
+        <h1 class="page-title">
+            PDF Summarise
+        </h1>
+
+        <p class="subtitle">
+            Upload a PDF and generate a concise summary of its content.
+        </p>
+
+
+        <!-- =========================
+             UPLOAD CARD
+        ========================= -->
+
+        <section class="card">
+
+            <div
+                class="upload-box"
+                id="uploadBox"
+            >
+
+                <div class="upload-icon">
+                    📄
+                </div>
+
+                <div class="upload-title">
+                    Upload PDF
+                </div>
+
+                <div class="upload-text">
+                    Click here or drag &amp; drop your PDF file
+                </div>
+
+                <div class="upload-limit">
+                    Maximum file size: 20 MB
+                </div>
+
+                <input
+                    type="file"
+                    id="pdfInput"
+                    accept="application/pdf,.pdf"
+                >
+
+            </div>
+
+
+            <!-- FILE INFORMATION -->
+
+            <div
+                class="file-info"
+                id="fileInfo"
+            >
+
+                <div class="file-details">
+
+                    <div class="pdf-icon">
+                        📕
+                    </div>
+
+                    <div>
+
+                        <div
+                            class="file-name"
+                            id="fileName"
+                        ></div>
+
+                        <div
+                            class="file-size"
+                            id="fileSize"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="remove-btn"
+                    id="removeBtn"
+                    type="button"
+                >
+                    Remove
+                </button>
+
+            </div>
+
+
+            <!-- SUMMARISE BUTTON -->
+
+            <button
+                class="summarise-btn"
+                id="summariseBtn"
+                type="button"
+                disabled
+            >
+                Summarise PDF
+            </button>
+
+
+            <!-- LOADING -->
+
+            <div
+                class="loading"
+                id="loading"
+            >
+
+                <div class="spinner"></div>
+
+                <div class="loading-title">
+                    Summarising PDF...
+                </div>
+
+                <div class="loading-text">
+                    Your PDF is being processed. Please wait.
+                </div>
+
+            </div>
+
+
+            <!-- ERROR -->
+
+            <div
+                class="error-box"
+                id="errorBox"
+            ></div>
+
+        </section>
+
+
+        <!-- =========================
+             RESULT
+        ========================= -->
+
+        <section
+            class="card result-section"
+            id="resultSection"
+        >
+
+            <div class="result-title">
+                Summary Result
+            </div>
+
+
+            <div class="success-box">
+                PDF summarised successfully.
+            </div>
+
+
+            <!-- SUMMARY -->
+
+            <div class="result-box">
+
+                <div class="result-box-header">
+                    Summary
+                </div>
+
+                <div
+                    class="summary-text"
+                    id="summaryText"
+                ></div>
+
+            </div>
+
+
+            <!-- EXTRACTED TEXT -->
+
+            <div class="result-box">
+
+                <div class="result-box-header">
+                    Extracted Text
+                </div>
+
+                <div
+                    class="extracted-text"
+                    id="extractedText"
+                ></div>
+
+            </div>
+
+
+            <!-- ACTIONS -->
+
+            <div class="result-actions">
+
+                <button
+                    class="action-btn new-btn"
+                    id="newBtn"
+                    type="button"
+                >
+                    Summarise Another PDF
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         JAVASCRIPT
+    ========================= -->
+
+    <script>
+
+        const API_BASE_URL =
+            "http://127.0.0.1:8000/api/v1";
+
+        const MAX_PDF_SIZE =
+            20 * 1024 * 1024;
+
+
+        /* =========================
+           ELEMENTS
+        ========================= */
+
+        const uploadBox =
+            document.getElementById("uploadBox");
+
+        const pdfInput =
+            document.getElementById("pdfInput");
+
+        const fileInfo =
+            document.getElementById("fileInfo");
+
+        const fileName =
+            document.getElementById("fileName");
+
+        const fileSize =
+            document.getElementById("fileSize");
+
+        const removeBtn =
+            document.getElementById("removeBtn");
+
+        const summariseBtn =
+            document.getElementById("summariseBtn");
+
+        const loading =
+            document.getElementById("loading");
+
+        const errorBox =
+            document.getElementById("errorBox");
+
+        const resultSection =
+            document.getElementById("resultSection");
+
+        const summaryText =
+            document.getElementById("summaryText");
+
+        const extractedText =
+            document.getElementById("extractedText");
+
+        const newBtn =
+            document.getElementById("newBtn");
+
+        const backBtn =
+            document.getElementById("backBtn");
+
+
+        let selectedFile = null;
+
+
+        /* =========================
+           FILE SIZE
+        ========================= */
+
+        function formatFileSize(bytes) {
+
+            if (bytes < 1024) {
+                return `${bytes} B`;
+            }
+
+            if (bytes < 1024 * 1024) {
+
+                return `${(
+                    bytes / 1024
+                ).toFixed(1)} KB`;
+
+            }
+
+            return `${(
+                bytes /
+                (1024 * 1024)
+            ).toFixed(2)} MB`;
+        }
+
+
+        /* =========================
+           ERROR
+        ========================= */
+
+        function showError(message) {
+
+            errorBox.textContent =
+                message;
+
+            errorBox.style.display =
+                "block";
+        }
+
+
+        function clearError() {
+
+            errorBox.textContent = "";
+
+            errorBox.style.display =
+                "none";
+        }
+
+
+        /* =========================
+           RESET
+        ========================= */
+
+        function resetPage() {
+
+            selectedFile = null;
+
+            pdfInput.value = "";
+
+            fileInfo.style.display =
+                "none";
+
+            summariseBtn.disabled =
+                true;
+
+            loading.style.display =
+                "none";
+
+            resultSection.style.display =
+                "none";
+
+            summaryText.textContent =
+                "";
+
+            extractedText.textContent =
+                "";
+
+            clearError();
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+
+
+        /* =========================
+           SELECT FILE
+        ========================= */
+
+        function setFile(file) {
+
+            clearError();
+
+            if (!file) {
+                return;
+            }
+
+
+            const isPdf =
+                file.type === "application/pdf" ||
+                file.name
+                    .toLowerCase()
+                    .endsWith(".pdf");
+
+
+            if (!isPdf) {
+
+                showError(
+                    "Please select a PDF file only."
+                );
+
+                return;
+            }
+
+
+            if (file.size > MAX_PDF_SIZE) {
+
+                showError(
+                    "PDF file size must be 20 MB or less."
+                );
+
+                return;
+            }
+
+
+            selectedFile = file;
+
+
+            fileName.textContent =
+                file.name;
+
+            fileSize.textContent =
+                formatFileSize(
+                    file.size
+                );
+
+
+            fileInfo.style.display =
+                "flex";
+
+            summariseBtn.disabled =
+                false;
+
+            resultSection.style.display =
+                "none";
+        }
+
+
+        /* =========================
+           UPLOAD CLICK
+        ========================= */
+
+        uploadBox.addEventListener(
+            "click",
+            () => {
+
+                pdfInput.click();
+
+            }
+        );
+
+
+        /* =========================
+           FILE INPUT
+        ========================= */
+
+        pdfInput.addEventListener(
+            "change",
+            (event) => {
+
+                const file =
+                    event.target.files[0];
+
+                setFile(file);
+
+            }
+        );
+
+
+        /* =========================
+           DRAG OVER
+        ========================= */
+
+        uploadBox.addEventListener(
+            "dragover",
+            (event) => {
+
+                event.preventDefault();
+
+                uploadBox.classList.add(
+                    "dragover"
+                );
+
+            }
+        );
+
+
+        /* =========================
+           DRAG LEAVE
+        ========================= */
+
+        uploadBox.addEventListener(
+            "dragleave",
+            () => {
+
+                uploadBox.classList.remove(
+                    "dragover"
+                );
+
+            }
+        );
+
+
+        /* =========================
+           DROP
+        ========================= */
+
+        uploadBox.addEventListener(
+            "drop",
+            (event) => {
+
+                event.preventDefault();
+
+                uploadBox.classList.remove(
+                    "dragover"
+                );
+
+                const file =
+                    event.dataTransfer.files[0];
+
+                setFile(file);
+
+            }
+        );
+
+
+        /* =========================
+           REMOVE
+        ========================= */
+
+        removeBtn.addEventListener(
+            "click",
+            () => {
+
+                resetPage();
+
+            }
+        );
+
+
+        /* =========================
+           NEW PDF
+        ========================= */
+
+        newBtn.addEventListener(
+            "click",
+            () => {
+
+                resetPage();
+
+            }
+        );
+
+
+        /* =========================
+           BACK
+        ========================= */
+
+        backBtn.addEventListener(
+            "click",
+            () => {
+
+                if (document.referrer) {
+
+                    window.history.back();
+
+                } else {
+
+                    window.location.href =
+                        "../index.html";
+
+                }
+
+            }
+        );
+
+
+        /* =========================
+           SUMMARISE
+        ========================= */
+
+        summariseBtn.addEventListener(
+            "click",
+            async () => {
+
+                if (!selectedFile) {
+
+                    showError(
+                        "Please select a PDF first."
+                    );
+
+                    return;
+                }
+
+
+                clearError();
+
+
+                summariseBtn.disabled =
+                    true;
+
+                loading.style.display =
+                    "block";
+
+                resultSection.style.display =
+                    "none";
+
+
+                try {
+
+                    const formData =
+                        new FormData();
+
+
+                    formData.append(
+                        "file",
+                        selectedFile
+                    );
+
+
+                    const response =
+                        await fetch(
+                            `${API_BASE_URL}/translation/summarise`,
+                            {
+                                method: "POST",
+                                body: formData
+                            }
+                        );
+
+
+                    let data = null;
+
+
+                    try {
+
+                        data =
+                            await response.json();
+
+                    } catch {
+
+                        throw new Error(
+                            `Server returned an invalid response (${response.status}).`
+                        );
+
+                    }
+
+
+                    if (
+                        !response.ok ||
+                        data.success === false
+                    ) {
+
+                        const message =
+                            data?.error?.message ||
+                            data?.message ||
+                            `PDF summarisation failed (${response.status}).`;
+
+
+                        throw new Error(
+                            message
+                        );
+                    }
+
+
+                    /* =========================
+                       RESULT DATA
+                    ========================= */
+
+                    summaryText.textContent =
+                        data.summary ||
+                        "No summary was returned.";
+
+
+                    extractedText.textContent =
+                        data.extracted_text ||
+                        "No extracted text was returned.";
+
+
+                    resultSection.style.display =
+                        "block";
+
+
+                    setTimeout(
+                        () => {
+
+                            resultSection.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start"
+                            });
+
+                        },
+                        100
+                    );
+
+
+                } catch (error) {
+
+                    console.error(
+                        "PDF summarise error:",
+                        error
+                    );
+
+
+                    showError(
+                        error?.message ||
+                        "Unable to summarise the PDF. Please try again."
+                    );
+
+
+                } finally {
+
+                    loading.style.display =
+                        "none";
+
+                    summariseBtn.disabled =
+                        false;
+
+                }
+
+            }
+        );
+
+    </script>
+
+</body>
+</html>

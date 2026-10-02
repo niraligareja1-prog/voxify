@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    />
+
+    <title>PDF Tools - Voxify</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #172033;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .page {
+            min-height: 100vh;
+            padding: 30px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .back-btn {
+            border: 1px solid #d8deea;
+            background: white;
+            color: #344054;
+            padding: 10px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .back-btn:hover {
+            background: #f8fafc;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e4e8f0;
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 8px 30px rgba(16, 24, 40, 0.05);
+            margin-bottom: 22px;
+        }
+
+        .page-title {
+            margin: 0 0 8px;
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            margin: 0 0 25px;
+            color: #667085;
+            line-height: 1.6;
+        }
+
+        .upload-area {
+            border: 2px dashed #b8c4d8;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #fafcff;
+            transition: 0.2s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #2563eb;
+            background: #f7faff;
+        }
+
+        .upload-icon {
+            font-size: 42px;
+            margin-bottom: 12px;
+        }
+
+        .upload-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .upload-text {
+            color: #667085;
+            font-size: 14px;
+        }
+
+        .file-name {
+            margin-top: 15px;
+            color: #2563eb;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        #pdfInput {
+            display: none;
+        }
+
+        .language-section {
+            margin-top: 25px;
+        }
+
+        .language-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #344054;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d0d5dd;
+            border-radius: 10px;
+            background: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: #2563eb;
+        }
+
+        .swap-btn {
+            width: 44px;
+            height: 44px;
+            border: 1px solid #d0d5dd;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .swap-btn:hover {
+            background: #f8fafc;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 28px;
+        }
+
+        .primary-btn {
+            border: none;
+            background: #2563eb;
+            color: white;
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            min-width: 180px;
+        }
+
+        .primary-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .primary-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .secondary-btn {
+            border: 1px solid #d0d5dd;
+            background: white;
+            color: #344054;
+            padding: 11px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 25px;
+            margin-top: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #dbe4f0;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .loading-text {
+            color: #667085;
+            font-size: 14px;
+        }
+
+        .error {
+            display: none;
+            margin-top: 20px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            color: #be123c;
+            line-height: 1.5;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .success {
+            display: none;
+            padding: 14px 16px;
+            background: #ecfdf3;
+            border: 1px solid #abefc6;
+            color: #067647;
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .result-box {
+            border: 1px solid #e4e7ec;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .result-box-title {
+            background: #f8fafc;
+            padding: 12px 15px;
+            font-weight: 700;
+            border-bottom: 1px solid #e4e7ec;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 330px;
+            resize: vertical;
+            border: none;
+            outline: none;
+            padding: 16px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #344054;
+        }
+
+        .result-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .info {
+            color: #667085;
+            font-size: 13px;
+            margin-top: 14px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 700px) {
+            .page {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .language-row {
+                grid-template-columns: 1fr;
+            }
+
+            .swap-btn {
+                width: 100%;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <div class="container">
+
+        <!-- TOP BAR -->
+        <div class="topbar">
+
+            <button
+                class="back-btn"
+                id="backBtn"
+                type="button"
+            >
+                ← Back
+            </button>
+
+            <div class="brand">
+                Voxify
+            </div>
+
+        </div>
+
+
+        <!-- MAIN CARD -->
+        <div class="card">
+
+            <h1
+                class="page-title"
+                id="pageTitle"
+            >
+                PDF Translation
+            </h1>
+
+            <p
+                class="subtitle"
+                id="pageSubtitle"
+            >
+                Translate your PDF documents into Indian languages while preserving the document layout.
+            </p>
+
+
+            <!-- UPLOAD -->
+            <label
+                class="upload-area"
+                for="pdfInput"
+                id="uploadArea"
+            >
+
+                <div class="upload-icon">
+                    📄
+                </div>
+
+                <div class="upload-title">
+                    Upload PDF
+                </div>
+
+                <div class="upload-text">
+                    Click here to select a PDF file
+                    <br>
+                    Maximum file size: 20 MB
+                </div>
+
+                <div
+                    class="file-name"
+                    id="fileName"
+                ></div>
+
+            </label>
+
+            <input
+                type="file"
+                id="pdfInput"
+                accept=".pdf,application/pdf"
+            />
+
+
+            <!-- LANGUAGES -->
+            <div
+                class="language-section"
+                id="languageSection"
+            >
+
+                <div class="language-row">
+
+                    <div class="field">
+
+                        <label for="sourceLanguage">
+                            Source Language
+                        </label>
+
+                        <select id="sourceLanguage">
+
+                            <option value="en-IN">
+                                English
+                            </option>
+
+                            <option value="hi-IN">
+                                Hindi
+                            </option>
+
+                            <option value="gu-IN">
+                                Gujarati
+                            </option>
+
+                            <option value="mr-IN">
+                                Marathi
+                            </option>
+
+                            <option value="ta-IN">
+                                Tamil
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <button
+                        class="swap-btn"
+                        id="swapBtn"
+                        type="button"
+                        title="Swap languages"
+                    >
+                        ⇄
+                    </button>
+
+
+                    <div class="field">
+
+                        <label for="targetLanguage">
+                            Target Language
+                        </label>
+
+                        <select id="targetLanguage">
+
+                            <option value="hi-IN">
+                                Hindi
+                            </option>
+
+                            <option value="gu-IN">
+                                Gujarati
+                            </option>
+
+                            <option value="mr-IN">
+                                Marathi
+                            </option>
+
+                            <option value="ta-IN">
+                                Tamil
+                            </option>
+
+                            <option value="en-IN">
+                                English
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACTION -->
+            <div class="action-row">
+
+                <button
+                    class="primary-btn"
+                    id="translateBtn"
+                    type="button"
+                >
+                    Translate PDF
+                </button>
+
+            </div>
+
+
+            <!-- LOADING -->
+            <div
+                class="loading"
+                id="loading"
+            >
+
+                <div class="spinner"></div>
+
+                <div
+                    class="loading-title"
+                >
+                    Processing PDF...
+                </div>
+
+                <div
+                    class="loading-text"
+                >
+                    Please wait.
+                </div>
+
+            </div>
+
+
+            <!-- ERROR -->
+            <div
+                class="error"
+                id="error"
+            ></div>
+
+        </div>
+
+
+        <!-- RESULT -->
+        <div
+            class="card result-section"
+            id="resultSection"
+        >
+
+            <div class="result-header">
+
+                <div
+                    class="result-title"
+                    id="resultTitle"
+                >
+                    Translation Result
+                </div>
+
+            </div>
+
+
+            <div
+                class="success"
+                id="pdfSuccess"
+            >
+                PDF processed successfully.
+            </div>
+
+
+            <div class="result-grid">
+
+                <div class="result-box">
+
+                    <div class="result-box-title">
+                        Original / Extracted Text
+                    </div>
+
+                    <textarea
+                        id="originalText"
+                        readonly
+                    ></textarea>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <div class="result-box-title">
+                        Translation / Summary
+                    </div>
+
+                    <textarea
+                        id="translatedText"
+                        readonly
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="result-actions">
+
+                <button
+                    class="secondary-btn"
+                    id="copyBtn"
+                    type="button"
+                >
+                    📋 Copy
+                </button>
+
+                <button
+                    class="primary-btn"
+                    id="downloadBtn"
+                    type="button"
+                >
+                    Download PDF
+                </button>
+
+            </div>
+
+
+            <div
+                class="info"
+                id="resultInfo"
+            ></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    /*
+     * ============================================================
+     * VOXIFY PDF TOOLS
+     * ============================================================
+     *
+     * Supported modes:
+     *
+     * PDF Translation:
+     * /pages/pdf.html?mode=pdf-translation
+     *
+     * PDF Summarise:
+     * /pages/pdf.html?mode=pdf-summarise
+     *
+     * ============================================================
+     */
+
+
+    // ============================================================
+    // API
+    // ============================================================
+
+    const TRANSLATION_API_URL =
+        "http://127.0.0.1:8000/api/v1/translation/file";
+
+    const SUMMARISE_API_URL =
+        "http://127.0.0.1:8000/api/v1/translation/summarise";
+
+
+    const MAX_FILE_SIZE =
+        20 * 1024 * 1024;
+
+
+    // ============================================================
+    // MODE
+    // ============================================================
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const pageMode =
+        params.get("mode") ||
+        "pdf-translation";
+
+    const isSummariseMode =
+        pageMode === "pdf-summarise";
+
+
+    // ============================================================
+    // ELEMENTS
+    // ============================================================
+
+    const pdfInput =
+        document.getElementById(
+            "pdfInput"
+        );
+
+    const uploadArea =
+        document.getElementById(
+            "uploadArea"
+        );
+
+    const fileName =
+        document.getElementById(
+            "fileName"
+        );
+
+    const pageTitle =
+        document.getElementById(
+            "pageTitle"
+        );
+
+    const pageSubtitle =
+        document.getElementById(
+            "pageSubtitle"
+        );
+
+    const languageSection =
+        document.getElementById(
+            "languageSection"
+        );
+
+    const sourceLanguage =
+        document.getElementById(
+            "sourceLanguage"
+        );
+
+    const targetLanguage =
+        document.getElementById(
+            "targetLanguage"
+        );
+
+    const swapBtn =
+        document.getElementById(
+            "swapBtn"
+        );
+
+    const translateBtn =
+        document.getElementById(
+            "translateBtn"
+        );
+
+    const loading =
+        document.getElementById(
+            "loading"
+        );
+
+    const errorBox =
+        document.getElementById(
+            "error"
+        );
+
+    const resultSection =
+        document.getElementById(
+            "resultSection"
+        );
+
+    const resultTitle =
+        document.getElementById(
+            "resultTitle"
+        );
+
+    const pdfSuccess =
+        document.getElementById(
+            "pdfSuccess"
+        );
+
+    const originalText =
+        document.getElementById(
+            "originalText"
+        );
+
+    const translatedText =
+        document.getElementById(
+            "translatedText"
+        );
+
+    const copyBtn =
+        document.getElementById(
+            "copyBtn"
+        );
+
+    const downloadBtn =
+        document.getElementById(
+            "downloadBtn"
+        );
+
+    const resultInfo =
+        document.getElementById(
+            "resultInfo"
+        );
+
+    const backBtn =
+        document.getElementById(
+            "backBtn"
+        );
+
+
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    let selectedFile = null;
+
+    let translatedPdfBlob = null;
+
+    let translatedPdfUrl = null;
+
+    let translatedPdfFilename =
+        "translated.pdf";
+
+
+    // ============================================================
+    // INITIAL PAGE MODE
+    // ============================================================
+
+    if (isSummariseMode) {
+
+        document.title =
+            "PDF Summarise - Voxify";
+
+        pageTitle.textContent =
+            "PDF Summarise";
+
+        pageSubtitle.textContent =
+            "Upload a PDF and generate a concise summary of its contents.";
+
+        languageSection.style.display =
+            "none";
+
+        swapBtn.style.display =
+            "none";
+
+        translateBtn.textContent =
+            "Summarise PDF";
+
+        resultTitle.textContent =
+            "PDF Summary";
+
+        downloadBtn.style.display =
+            "none";
+
+        copyBtn.textContent =
+            "📋 Copy Summary";
+
+        loading.querySelector(
+            ".loading-title"
+        ).textContent =
+            "Summarising PDF...";
+
+        loading.querySelector(
+            ".loading-text"
+        ).textContent =
+            "Your PDF is being analysed. Please wait.";
+
+    }
+
+
+    // ============================================================
+    // FILE SELECT
+    // ============================================================
+
+    pdfInput.addEventListener(
+        "change",
+        handleFileSelect
+    );
+
+
+    function handleFileSelect() {
+
+        hideError();
+
+        resultSection.style.display =
+            "none";
+
+        const file =
+            pdfInput.files &&
+            pdfInput.files[0];
+
+        if (!file) {
+
+            selectedFile = null;
+
+            fileName.textContent = "";
+
+            return;
+        }
+
+
+        if (
+            !file.name
+                .toLowerCase()
+                .endsWith(".pdf")
+        ) {
+
+            selectedFile = null;
+
+            pdfInput.value = "";
+
+            showError(
+                "Please select a PDF file."
+            );
+
+            return;
+        }
+
+
+        if (
+            file.size >
+            MAX_FILE_SIZE
+        ) {
+
+            selectedFile = null;
+
+            pdfInput.value = "";
+
+            showError(
+                "PDF file size must be 20 MB or smaller."
+            );
+
+            return;
+        }
+
+
+        selectedFile = file;
+
+        fileName.textContent =
+            file.name +
+            " • " +
+            formatFileSize(
+                file.size
+            );
+
+    }
+
+
+    // ============================================================
+    // CLICK UPLOAD AREA
+    // ============================================================
+
+    uploadArea.addEventListener(
+        "dragover",
+        function(event) {
+
+            event.preventDefault();
+
+            uploadArea.style.borderColor =
+                "#2563eb";
+
+        }
+    );
+
+
+    uploadArea.addEventListener(
+        "dragleave",
+        function() {
+
+            uploadArea.style.borderColor =
+                "#b8c4d8";
+
+        }
+    );
+
+
+    uploadArea.addEventListener(
+        "drop",
+        function(event) {
+
+            event.preventDefault();
+
+            uploadArea.style.borderColor =
+                "#b8c4d8";
+
+            const files =
+                event.dataTransfer.files;
+
+            if (
+                !files ||
+                !files.length
+            ) {
+                return;
+            }
+
+            const file =
+                files[0];
+
+            if (
+                !file.name
+                    .toLowerCase()
+                    .endsWith(".pdf")
+            ) {
+
+                showError(
+                    "Please select a PDF file."
+                );
+
+                return;
+            }
+
+            if (
+                file.size >
+                MAX_FILE_SIZE
+            ) {
+
+                showError(
+                    "PDF file size must be 20 MB or smaller."
+                );
+
+                return;
+            }
+
+
+            selectedFile = file;
+
+            fileName.textContent =
+                file.name +
+                " • " +
+                formatFileSize(
+                    file.size
+                );
+
+        }
+    );
+
+
+    // ============================================================
+    // SWAP LANGUAGES
+    // ============================================================
+
+    swapBtn.addEventListener(
+        "click",
+        function() {
+
+            if (isSummariseMode) {
+                return;
+            }
+
+            const source =
+                sourceLanguage.value;
+
+            const target =
+                targetLanguage.value;
+
+            sourceLanguage.value =
+                target;
+
+            targetLanguage.value =
+                source;
+
+        }
+    );
+
+
+    // ============================================================
+    // PROCESS PDF
+    // ============================================================
+
+    translateBtn.addEventListener(
+        "click",
+        async function() {
+
+            hideError();
+
+            resultSection.style.display =
+                "none";
+
+
+            if (!selectedFile) {
+
+                showError(
+                    "Please select a PDF file first."
+                );
+
+                return;
+            }
+
+
+            if (isSummariseMode) {
+
+                await summarisePdf();
+
+                return;
+            }
+
+
+            await translatePdf();
+
+        }
+    );
+
+
+    // ============================================================
+    // PDF SUMMARISE
+    // ============================================================
+
+    async function summarisePdf() {
+
+        const formData =
+            new FormData();
+
+        formData.append(
+            "file",
+            selectedFile
+        );
+
+        formData.append(
+            "max_sentences",
+            "8"
+        );
+
+
+        setLoading(
+            true,
+            "Summarising PDF...",
+            "Your PDF is being analysed. Please wait."
+        );
+
+
+        try {
+
+            const response =
+                await fetch(
+                    SUMMARISE_API_URL,
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            const data =
+                await parseResponse(
+                    response
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    getErrorMessage(
+                        data
+                    )
+                );
+
+            }
+
+
+            if (
+                data.success === false
+            ) {
+
+                throw new Error(
+                    getErrorMessage(
+                        data
+                    )
+                );
+
+            }
+
+
+            if (
+                !data.summary
+            ) {
+
+                throw new Error(
+                    "The server did not return a summary."
+                );
+
+            }
+
+
+            originalText.value =
+                "File: " +
+                selectedFile.name +
+                "\n\n" +
+                "Size: " +
+                formatFileSize(
+                    selectedFile.size
+                ) +
+                "\n\n" +
+                "Extracted PDF text:\n\n" +
+                (
+                    data.extracted_text ||
+                    "No extracted text returned."
+                );
+
+
+            translatedText.value =
+                data.summary;
+
+
+            resultTitle.textContent =
+                "PDF Summary";
+
+
+            pdfSuccess.innerHTML =
+                "✓ PDF summary generated successfully.";
+
+            pdfSuccess.style.display =
+                "block";
+
+
+            resultInfo.textContent =
+                "Summary generated using the Voxify PDF summarisation API.";
+
+
+            downloadBtn.style.display =
+                "none";
+
+
+            copyBtn.style.display =
+                "inline-block";
+
+            copyBtn.disabled =
+                false;
+
+            copyBtn.textContent =
+                "📋 Copy Summary";
+
+
+            resultSection.style.display =
+                "block";
+
+
+            resultSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "PDF summarise error:",
+                error
+            );
+
+            showError(
+                error.message ||
+                "PDF summarisation failed. Please try again."
+            );
+
+        }
+
+        finally {
+
+            setLoading(
+                false
+            );
+
+        }
+
+    }
+
+
+    // ============================================================
+    // PDF TRANSLATION
+    // ============================================================
+
+    async function translatePdf() {
+
+        if (
+            sourceLanguage.value ===
+            targetLanguage.value
+        ) {
+
+            showError(
+                "Source and target languages cannot be the same."
+            );
+
+            return;
+        }
+
+
+        const formData =
+            new FormData();
+
+        formData.append(
+            "file",
+            selectedFile
+        );
+
+        formData.append(
+            "source_language",
+            sourceLanguage.value
+        );
+
+        formData.append(
+            "target_language",
+            targetLanguage.value
+        );
+
+
+        setLoading(
+            true,
+            "Translating PDF...",
+            "Your PDF is being translated while preserving its layout."
+        );
+
+
+        try {
+
+            const response =
+                await fetch(
+                    TRANSLATION_API_URL,
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            const data =
+                await parseResponse(
+                    response
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    getErrorMessage(
+                        data
+                    )
+                );
+
+            }
+
+
+            if (
+                data.success === false
+            ) {
+
+                throw new Error(
+                    getErrorMessage(
+                        data
+                    )
+                );
+
+            }
+
+
+            if (
+                !data.translated_pdf_base64
+            ) {
+
+                throw new Error(
+                    "The server did not return translated PDF data."
+                );
+
+            }
+
+
+            clearTranslatedPdf();
+
+
+            translatedPdfBlob =
+                base64ToBlob(
+                    data.translated_pdf_base64,
+                    "application/pdf"
+                );
+
+
+            translatedPdfUrl =
+                URL.createObjectURL(
+                    translatedPdfBlob
+                );
+
+
+            translatedPdfFilename =
+                data.filename ||
+                (
+                    selectedFile.name
+                        .replace(
+                            /\.pdf$/i,
+                            ""
+                        ) +
+                    "_translated.pdf"
+                );
+
+
+            originalText.value =
+                "File: " +
+                selectedFile.name +
+                "\n\n" +
+                "Size: " +
+                formatFileSize(
+                    selectedFile.size
+                ) +
+                "\n\n" +
+                "Source Language: " +
+                getLanguageName(
+                    sourceLanguage.value
+                );
+
+
+            translatedText.value =
+                "PDF translation completed successfully.\n\n" +
+                "Target Language: " +
+                getLanguageName(
+                    targetLanguage.value
+                ) +
+                "\n\n" +
+                "The translated PDF is ready to download.";
+
+
+            resultTitle.textContent =
+                "Translation Result";
+
+
+            pdfSuccess.innerHTML =
+                "✓ Your translated PDF has been generated successfully.";
+
+            pdfSuccess.style.display =
+                "block";
+
+
+            resultInfo.textContent =
+                "The translated PDF is ready. Click Download PDF to save it.";
+
+
+            downloadBtn.style.display =
+                "inline-block";
+
+            downloadBtn.disabled =
+                false;
+
+
+            copyBtn.style.display =
+                "inline-block";
+
+            copyBtn.disabled =
+                false;
+
+            copyBtn.textContent =
+                "📋 Copy Status";
+
+
+            resultSection.style.display =
+                "block";
+
+
+            resultSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "PDF translation error:",
+                error
+            );
+
+            showError(
+                error.message ||
+                "PDF translation failed. Please try again."
+            );
+
+        }
+
+        finally {
+
+            setLoading(
+                false
+            );
+
+        }
+
+    }
+
+
+    // ============================================================
+    // DOWNLOAD
+    // ============================================================
+
+    downloadBtn.addEventListener(
+        "click",
+        function() {
+
+            if (
+                !translatedPdfUrl ||
+                !translatedPdfBlob
+            ) {
+
+                showError(
+                    "Translated PDF is not available."
+                );
+
+                return;
+            }
+
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+            link.href =
+                translatedPdfUrl;
+
+            link.download =
+                translatedPdfFilename;
+
+            document.body.appendChild(
+                link
+            );
+
+            link.click();
+
+            link.remove();
+
+        }
+    );
+
+
+    // ============================================================
+    // COPY
+    // ============================================================
+
+    copyBtn.addEventListener(
+        "click",
+        async function() {
+
+            const text =
+                translatedText.value ||
+                "";
+
+            if (!text) {
+                return;
+            }
+
+
+            try {
+
+                await navigator.clipboard.writeText(
+                    text
+                );
+
+                const oldText =
+                    copyBtn.textContent;
+
+                copyBtn.textContent =
+                    "✓ Copied";
+
+                setTimeout(
+                    function() {
+
+                        copyBtn.textContent =
+                            oldText;
+
+                    },
+                    1500
+                );
+
+            }
+
+            catch (error) {
+
+                translatedText.select();
+
+                document.execCommand(
+                    "copy"
+                );
+
+            }
+
+        }
+    );
+
+
+    // ============================================================
+    // BACK
+    // ============================================================
+
+    backBtn.addEventListener(
+        "click",
+        function() {
+
+            if (
+                window.history.length > 1
+            ) {
+
+                window.history.back();
+
+            }
+
+            else {
+
+                window.location.href =
+                    "/";
+
+            }
+
+        }
+    );
+
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    async function parseResponse(
+        response
+    ) {
+
+        const contentType =
+            response.headers.get(
+                "content-type"
+            ) || "";
+
+
+        if (
+            contentType.includes(
+                "application/json"
+            )
+        ) {
+
+            return await response.json();
+
+        }
+
+
+        const text =
+            await response.text();
+
+
+        return {
+            success: false,
+            error: {
+                message:
+                    text ||
+                    `Server returned status ${response.status}`
+            }
+        };
+
+    }
+
+
+    function getErrorMessage(
+        data
+    ) {
+
+        if (!data) {
+
+            return "Something went wrong.";
+
+        }
+
+
+        if (
+            typeof data.detail ===
+            "string"
+        ) {
+
+            return data.detail;
+
+        }
+
+
+        if (
+            data.error &&
+            typeof data.error.message ===
+            "string"
+        ) {
+
+            return data.error.message;
+
+        }
+
+
+        if (
+            typeof data.message ===
+            "string"
+        ) {
+
+            return data.message;
+
+        }
+
+
+        return "The server returned an error.";
+
+    }
+
+
+    function showError(
+        message
+    ) {
+
+        errorBox.textContent =
+            message;
+
+        errorBox.style.display =
+            "block";
+
+        errorBox.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+    }
+
+
+    function hideError() {
+
+        errorBox.textContent =
+            "";
+
+        errorBox.style.display =
+            "none";
+
+    }
+
+
+    function setLoading(
+        visible,
+        title,
+        message
+    ) {
+
+        if (visible) {
+
+            if (title) {
+
+                loading.querySelector(
+                    ".loading-title"
+                ).textContent =
+                    title;
+
+            }
+
+
+            if (message) {
+
+                loading.querySelector(
+                    ".loading-text"
+                ).textContent =
+                    message;
+
+            }
+
+
+            loading.style.display =
+                "block";
+
+            translateBtn.disabled =
+                true;
+
+        }
+
+        else {
+
+            loading.style.display =
+                "none";
+
+            translateBtn.disabled =
+                false;
+
+        }
+
+    }
+
+
+    function formatFileSize(
+        bytes
+    ) {
+
+        if (
+            bytes < 1024
+        ) {
+
+            return bytes + " B";
+
+        }
+
+
+        if (
+            bytes < 1024 * 1024
+        ) {
+
+            return (
+                bytes / 1024
+            ).toFixed(1) +
+            " KB";
+
+        }
+
+
+        return (
+            bytes /
+            (1024 * 1024)
+        ).toFixed(2) +
+        " MB";
+
+    }
+
+
+    function getLanguageName(
+        code
+    ) {
+
+        const languages = {
+
+            "en-IN":
+                "English",
+
+            "hi-IN":
+                "Hindi",
+
+            "gu-IN":
+                "Gujarati",
+
+            "mr-IN":
+                "Marathi",
+
+            "ta-IN":
+                "Tamil"
+
+        };
+
+
+        return (
+            languages[code] ||
+            code
+        );
+
+    }
+
+
+    function base64ToBlob(
+        base64,
+        contentType
+    ) {
+
+        const byteCharacters =
+            atob(base64);
+
+        const byteArrays = [];
+
+
+        const chunkSize =
+            1024;
+
+
+        for (
+            let offset = 0;
+            offset < byteCharacters.length;
+            offset += chunkSize
+        ) {
+
+            const slice =
+                byteCharacters.slice(
+                    offset,
+                    offset + chunkSize
+                );
+
+
+            const byteNumbers =
+                new Array(
+                    slice.length
+                );
+
+
+            for (
+                let i = 0;
+                i < slice.length;
+                i++
+            ) {
+
+                byteNumbers[i] =
+                    slice.charCodeAt(i);
+
+            }
+
+
+            const byteArray =
+                new Uint8Array(
+                    byteNumbers
+                );
+
+
+            byteArrays.push(
+                byteArray
+            );
+
+        }
+
+
+        return new Blob(
+            byteArrays,
+            {
+                type:
+                    contentType
+            }
+        );
+
+    }
+
+
+    function clearTranslatedPdf() {
+
+        if (
+            translatedPdfUrl
+        ) {
+
+            URL.revokeObjectURL(
+                translatedPdfUrl
+            );
+
+        }
+
+
+        translatedPdfUrl =
+            null;
+
+        translatedPdfBlob =
+            null;
+
+        translatedPdfFilename =
+            "translated.pdf";
+
+    }
+
+
+    // ============================================================
+    // CLEANUP
+    // ============================================================
+
+    window.addEventListener(
+        "beforeunload",
+        function() {
+
+            clearTranslatedPdf();
+
+        }
+    );
+
+</script>
+
+</body>
+</html>

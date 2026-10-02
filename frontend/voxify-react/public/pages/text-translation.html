@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Text Translation | Voxify</title>
+
+<link rel="stylesheet" href="../css/style.css">
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Inter, Arial, sans-serif;
+        background: #f5f7fb;
+        color: #172033;
+    }
+
+    /* ================= SIDEBAR ================= */
+
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 245px;
+        height: 100vh;
+        background: #111827;
+        color: white;
+        padding: 25px 16px;
+        z-index: 10;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 5px 12px 30px;
+    }
+
+    .brand-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #2f6fed, #6d8cff);
+        font-size: 19px;
+    }
+
+    .brand h2 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: .3px;
+    }
+
+    .menu-title {
+        color: #8b95a7;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 0 12px;
+        margin-bottom: 10px;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 12px 13px;
+        margin: 5px 0;
+        border-radius: 10px;
+        color: #cbd5e1;
+        text-decoration: none;
+        font-size: 14px;
+        transition: .2s;
+    }
+
+    .nav-link:hover {
+        background: #1f2937;
+        color: white;
+    }
+
+    .nav-link.active {
+        background: #2f6fed;
+        color: white;
+    }
+
+    .nav-icon {
+        width: 22px;
+        text-align: center;
+        font-size: 17px;
+    }
+
+    .sidebar-bottom {
+        position: absolute;
+        bottom: 20px;
+        left: 16px;
+        right: 16px;
+    }
+
+    /* ================= MAIN ================= */
+
+    .main {
+        margin-left: 245px;
+        min-height: 100vh;
+        padding: 30px 38px;
+    }
+
+    .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+    }
+
+    .topbar h1 {
+        margin: 0;
+        font-size: 28px;
+    }
+
+    .topbar p {
+        margin: 7px 0 0;
+        color: #7b8494;
+        font-size: 14px;
+    }
+
+    .user-chip {
+        background: white;
+        border: 1px solid #e5e9f0;
+        padding: 9px 14px;
+        border-radius: 30px;
+        font-size: 13px;
+        color: #4b5563;
+    }
+
+    /* ================= TRANSLATION CARD ================= */
+
+    .translation-card {
+        background: white;
+        border: 1px solid #e8ebf2;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 35px rgba(30, 41, 59, .06);
+    }
+
+    /* ================= LANGUAGE BAR ================= */
+
+    .language-bar {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 22px;
+    }
+
+    .language-group {
+        flex: 1;
+    }
+
+    .language-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #7b8494;
+        margin-bottom: 7px;
+    }
+
+    select {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1px solid #dfe4ec;
+        border-radius: 11px;
+        background: #fafbfc;
+        color: #202938;
+        font-size: 14px;
+        outline: none;
+        cursor: pointer;
+    }
+
+    select:focus {
+        border-color: #2f6fed;
+    }
+
+    .swap-btn {
+        margin-top: 21px;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid #dfe4ec;
+        background: white;
+        cursor: pointer;
+        font-size: 18px;
+        transition: .2s;
+    }
+
+    .swap-btn:hover {
+        background: #eef4ff;
+        transform: rotate(180deg);
+    }
+
+    /* ================= TEXT PANELS ================= */
+
+    .editor-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .editor {
+        border: 1px solid #e2e6ed;
+        border-radius: 17px;
+        overflow: hidden;
+        background: #fafbfc;
+    }
+
+    .editor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 13px 16px;
+        border-bottom: 1px solid #e5e8ee;
+        background: white;
+    }
+
+    .editor-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .status {
+        font-size: 11px;
+        color: #7b8494;
+    }
+
+    textarea {
+        width: 100%;
+        height: 280px;
+        border: none;
+        outline: none;
+        resize: none;
+        padding: 20px;
+        background: transparent;
+        font-family: inherit;
+        font-size: 16px;
+        line-height: 1.7;
+        color: #273244;
+    }
+
+    textarea::placeholder {
+        color: #a0a8b5;
+    }
+
+    #translationResult {
+        background: #f8faff;
+    }
+
+    .editor-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        border-top: 1px solid #e5e8ee;
+        background: white;
+    }
+
+    .counter {
+        color: #8b94a3;
+        font-size: 11px;
+    }
+
+    .mini-actions {
+        display: flex;
+        gap: 7px;
+    }
+
+    .mini-btn {
+        border: 1px solid #e0e5ec;
+        background: white;
+        border-radius: 8px;
+        padding: 7px 10px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .mini-btn:hover {
+        background: #f1f5ff;
+    }
+
+    /* ================= ACTION BAR ================= */
+
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    .hint {
+        color: #8a93a2;
+        font-size: 12px;
+    }
+
+    .actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .clear-btn {
+        padding: 12px 20px;
+        border-radius: 10px;
+        border: 1px solid #dfe4ec;
+        background: white;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .translate-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #2f6fed, #547df4);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 7px 18px rgba(47, 111, 237, .22);
+    }
+
+    .translate-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(47, 111, 237, .28);
+    }
+
+    /* ================= INFO CARDS ================= */
+
+    .info-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 18px;
+    }
+
+    .info-card {
+        background: white;
+        border: 1px solid #e8ebf2;
+        border-radius: 15px;
+        padding: 16px;
+    }
+
+    .info-card strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 5px;
+    }
+
+    .info-card span {
+        font-size: 12px;
+        color: #7d8797;
+    }
+
+    /* ================= LOADING ================= */
+
+    .loading {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        color: #2f6fed;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #2f6fed;
+        animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+        from {
+            opacity: .3;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* ================= RESPONSIVE ================= */
+
+    @media (max-width: 900px) {
+
+        .sidebar {
+            width: 75px;
+        }
+
+        .brand h2,
+        .menu-title,
+        .nav-link span {
+            display: none;
+        }
+
+        .brand {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .nav-link {
+            justify-content: center;
+        }
+
+        .main {
+            margin-left: 75px;
+            padding: 25px;
+        }
+
+        .editor-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 600px) {
+
+        .main {
+            padding: 18px;
+        }
+
+        .language-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .swap-btn {
+            align-self: center;
+            margin-top: 0;
+        }
+
+        .topbar {
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .user-chip {
+            display: none;
+        }
+
+        .action-bar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 15px;
+        }
+
+        .actions {
+            justify-content: flex-end;
+        }
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+<!-- ================= SIDEBAR ================= -->
+
+<aside class="sidebar">
+
+```
+<div class="brand">
+    <div class="brand-icon">V</div>
+    <h2>Voxify</h2>
+</div>
+
+<div class="menu-title">Workspace</div>
+
+<a href="/" class="nav-link">
+    <div class="nav-icon">⌂</div>
+    <span>Dashboard</span>
+</a>
+
+<a href="text-translation.html" class="nav-link active">
+    <div class="nav-icon">T</div>
+    <span>Text Translation</span>
+</a>
+
+<a href="audio-translation.html" class="nav-link">
+    <div class="nav-icon">♫</div>
+    <span>Audio Translation</span>
+</a>
+
+<a href="pdf-translation.html" class="nav-link">
+    <div class="nav-icon">▣</div>
+    <span>PDF Translation</span>
+</a>
+
+<a href="image-translation.html" class="nav-link">
+    <div class="nav-icon">▧</div>
+    <span>Image Translation</span>
+</a>
+
+<div class="menu-title" style="margin-top:25px;">
+    Account
+</div>
+
+<a href="history.html" class="nav-link">
+    <div class="nav-icon">◷</div>
+    <span>History</span>
+</a>
+
+<a href="profile.html" class="nav-link">
+    <div class="nav-icon">○</div>
+    <span>Profile</span>
+</a>
+
+<div class="sidebar-bottom">
+
+    <a href="#" class="nav-link" onclick="logoutUser()">
+        <div class="nav-icon">↪</div>
+        <span>Logout</span>
+    </a>
+
+</div>
+```
+
+</aside>
+
+<!-- ================= MAIN ================= -->
+
+<main class="main">
+
+```
+<div class="topbar">
+
+    <div>
+        <h1>Text Translation</h1>
+        <p>Break language barriers with Voxify.</p>
+    </div>
+
+    <div class="user-chip" id="userEmail">
+        User
+    </div>
+
+</div>
+
+
+<section class="translation-card">
+
+    <!-- ================= LANGUAGE SELECTION ================= -->
+
+    <div class="language-bar">
+
+        <div class="language-group">
+
+            <label>FROM</label>
+
+            <select id="sourceLanguage">
+
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+                <option value="gu">Gujarati</option>
+                <option value="mr">Marathi</option>
+                <option value="ta">Tamil</option>
+
+            </select>
+
+        </div>
+
+
+        <button
+            class="swap-btn"
+            onclick="swapLanguages()"
+            title="Swap languages"
+        >
+            ⇄
+        </button>
+
+
+        <div class="language-group">
+
+            <label>TO</label>
+
+            <select id="targetLanguage">
+
+                <option value="gu">Gujarati</option>
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+                <option value="mr">Marathi</option>
+                <option value="ta">Tamil</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= TEXT EDITORS ================= -->
+
+    <div class="editor-grid">
+
+        <!-- INPUT -->
+
+        <div class="editor">
+
+            <div class="editor-header">
+
+                <div class="editor-title">
+                    <span>✎</span>
+                    <span>Your Text</span>
+                </div>
+
+                <span class="status" id="inputStatus">
+                    Ready
+                </span>
+
+            </div>
+
+
+            <textarea
+                id="sourceText"
+                maxlength="5000"
+                placeholder="Type or paste your text here..."
+                oninput="updateCounter()"
+            ></textarea>
+
+
+            <div class="editor-footer">
+
+                <span class="counter" id="charCounter">
+                    0 / 5000 characters
+                </span>
+
+                <div class="mini-actions">
+
+                    <button
+                        class="mini-btn"
+                        onclick="clearInput()"
+                    >
+                        Clear
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RESULT -->
+
+        <div class="editor">
+
+            <div class="editor-header">
+
+                <div class="editor-title">
+                    <span>✦</span>
+                    <span>Voxify Result</span>
+                </div>
+
+                <div class="loading" id="loading">
+
+                    <span class="dot"></span>
+                    Translating...
+
+                </div>
+
+            </div>
+
+
+            <textarea
+                id="translationResult"
+                placeholder="Your translated text will appear here..."
+                readonly
+            ></textarea>
+
+
+            <div class="editor-footer">
+
+                <span class="counter">
+                    Translation result
+                </span>
+
+                <div class="mini-actions">
+
+                    <button
+                        class="mini-btn"
+                        onclick="copyTranslation()"
+                    >
+                        Copy
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= ACTION BAR ================= -->
+
+    <div class="action-bar">
+
+        <div class="hint">
+            Maximum 5,000 characters per translation.
+        </div>
+
+        <div class="actions">
+
+            <button
+                class="clear-btn"
+                onclick="clearTranslation()"
+            >
+                Clear
+            </button>
+
+            <button
+                class="translate-btn"
+                onclick="translateText()"
+            >
+                Translate →
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= INFO ================= -->
+
+<div class="info-row">
+
+    <div class="info-card">
+
+        <strong>🌐 Multiple Languages</strong>
+
+        <span>
+            Translate between English, Hindi, Gujarati,
+            Marathi and Tamil.
+        </span>
+
+    </div>
+
+
+    <div class="info-card">
+
+        <strong>⚡ Fast Processing</strong>
+
+        <span>
+            Powered by the local IndicTrans2 translation model.
+        </span>
+
+    </div>
+
+
+    <div class="info-card">
+
+        <strong>🔒 Secure Workspace</strong>
+
+        <span>
+            Your translation activity stays connected to your account.
+        </span>
+
+    </div>
+
+</div>
+```
+
+</main>
+
+<script src="../js/auth.js"></script>
+
+<script>
+
+    /* ================= USER ================= */
+
+    const savedEmail =
+        localStorage.getItem("user_email");
+
+    if (savedEmail) {
+
+        document.getElementById("userEmail").textContent =
+            savedEmail;
+    }
+
+
+    /* ================= CHARACTER COUNTER ================= */
+
+    function updateCounter() {
+
+        const text =
+            document.getElementById("sourceText").value;
+
+        document.getElementById("charCounter").textContent =
+            `${text.length} / 5000 characters`;
+    }
+
+
+    /* ================= CLEAR INPUT ================= */
+
+    function clearInput() {
+
+        document.getElementById("sourceText").value = "";
+
+        updateCounter();
+
+        document.getElementById("inputStatus").textContent =
+            "Ready";
+    }
+
+
+    /* ================= CLEAR ALL ================= */
+
+    function clearTranslation() {
+
+        document.getElementById("sourceText").value = "";
+
+        document.getElementById("translationResult").value = "";
+
+        updateCounter();
+
+        document.getElementById("inputStatus").textContent =
+            "Ready";
+    }
+
+
+    /* ================= COPY ================= */
+
+    async function copyTranslation() {
+
+        const result =
+            document.getElementById("translationResult").value;
+
+        if (!result) {
+
+            alert("There is no translation to copy.");
+
+            return;
+        }
+
+        try {
+
+            await navigator.clipboard.writeText(result);
+
+            alert("Translation copied successfully.");
+
+        } catch (error) {
+
+            alert("Unable to copy translation.");
+
+        }
+    }
+
+
+    /* ================= SWAP ================= */
+
+    function swapLanguages() {
+
+        const source =
+            document.getElementById("sourceLanguage");
+
+        const target =
+            document.getElementById("targetLanguage");
+
+        const temp =
+            source.value;
+
+        source.value =
+            target.value;
+
+        target.value =
+            temp;
+    }
+
+
+    /* ================= TRANSLATE ================= */
+
+    async function translateText() {
+
+        const sourceText =
+            document.getElementById("sourceText").value.trim();
+
+        const sourceLanguage =
+            document.getElementById("sourceLanguage").value;
+
+        const targetLanguage =
+            document.getElementById("targetLanguage").value;
+
+        const resultBox =
+            document.getElementById("translationResult");
+
+        const loading =
+            document.getElementById("loading");
+
+        const inputStatus =
+            document.getElementById("inputStatus");
+
+
+        /* ================= VALIDATION ================= */
+
+        if (!sourceText) {
+
+            alert("Please enter text to translate.");
+
+            return;
+        }
+
+
+        if (sourceText.length > 5000) {
+
+            alert(
+                "Text cannot exceed 5,000 characters."
+            );
+
+            return;
+        }
+
+
+        if (sourceLanguage === targetLanguage) {
+
+            alert(
+                "Source and target languages must be different."
+            );
+
+            return;
+        }
+
+
+        /* ================= SHOW LOADING ================= */
+
+        loading.style.display =
+            "flex";
+
+        inputStatus.textContent =
+            "Processing...";
+
+        resultBox.value =
+            "";
+
+
+        try {
+
+            /* ================= API REQUEST ================= */
+
+            const response =
+                await fetch(
+                    "http://127.0.0.1:8000/api/v1/translation/text",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            text: sourceText,
+
+                            source_language:
+                                getLanguageCode(sourceLanguage),
+
+                            target_language:
+                                getLanguageCode(targetLanguage)
+
+                        })
+                    }
+                );
+
+
+            /* ================= RESPONSE TYPE ================= */
+
+            const contentType =
+                response.headers.get("content-type") || "";
+
+
+            if (!contentType.includes("application/json")) {
+
+                const textResponse =
+                    await response.text();
+
+                throw new Error(
+                    textResponse ||
+                    "Server returned an invalid response."
+                );
+            }
+
+
+            const data =
+                await response.json();
+
+
+            /* ================= BACKEND ERROR ================= */
+
+            if (!response.ok) {
+
+                let message =
+                    "Translation failed.";
+
+                if (typeof data.detail === "string") {
+
+                    message =
+                        data.detail;
+
+                } else if (Array.isArray(data.detail)) {
+
+                    message =
+                        data.detail
+                            .map(item =>
+                                typeof item === "string"
+                                    ? item
+                                    : (
+                                        item.msg ||
+                                        item.message ||
+                                        JSON.stringify(item)
+                                    )
+                            )
+                            .join("\n");
+
+                } else if (
+                    data.detail &&
+                    typeof data.detail === "object"
+                ) {
+
+                    message =
+                        data.detail.message ||
+                        JSON.stringify(data.detail);
+
+                } else if (
+                    typeof data.message === "string"
+                ) {
+
+                    message =
+                        data.message;
+                }
+
+                throw new Error(message);
+            }
+
+
+            /* ================= SUCCESS ================= */
+
+            if (!data.success) {
+
+                throw new Error(
+                    "Translation was not successful."
+                );
+            }
+
+
+            if (!data.translated_text) {
+
+                throw new Error(
+                    "Translation result is empty."
+                );
+            }
+
+
+            resultBox.value =
+                data.translated_text;
+
+            inputStatus.textContent =
+                "Completed";
+
+
+        } catch (error) {
+
+            console.error(
+                "Translation Error:",
+                error
+            );
+
+            resultBox.value =
+                "";
+
+            alert(
+                "Translation Error: " +
+                error.message
+            );
+
+            inputStatus.textContent =
+                "Error";
+
+
+        } finally {
+
+            loading.style.display =
+                "none";
+        }
+    }
+
+
+    /* ================= LANGUAGE CODE MAPPING ================= */
+
+    function getLanguageCode(code) {
+
+        const languages = {
+
+            "en": "en-IN",
+            "hi": "hi-IN",
+            "gu": "gu-IN",
+            "mr": "mr-IN",
+            "ta": "ta-IN"
+
+        };
+
+        return languages[code];
+    }
+
+</script>
+
+</body>
+</html>
+

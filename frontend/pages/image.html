@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voxify - Image Translation</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #17233a;
+        }
+
+        header {
+            height: 90px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+        }
+
+        .logo {
+            color: #2f6fec;
+            font-size: 34px;
+            font-weight: 800;
+        }
+
+        .back {
+            border: 0;
+            background: #eef4ff;
+            color: #2563eb;
+            padding: 13px 22px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 50px 25px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 44px;
+            margin: 0;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 19px;
+            margin: 12px 0 35px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.06);
+        }
+
+        .modes {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .mode {
+            padding: 13px 24px;
+            border-radius: 12px;
+            border: 1px solid #dbe3ef;
+            background: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .mode.active {
+            background: #2f6fec;
+            color: white;
+            border-color: #2f6fec;
+        }
+
+        .languages {
+            display: grid;
+            grid-template-columns: 1fr 60px 1fr;
+            gap: 15px;
+            align-items: end;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #dbe3ef;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+
+        .swap {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 1px solid #dbe3ef;
+            background: white;
+            cursor: pointer;
+            font-size: 22px;
+            color: #2f6fec;
+        }
+
+        .upload {
+            min-height: 330px;
+            border: 2px dashed #b8cdf5;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-align: center;
+            background: #fbfdff;
+        }
+
+        .upload:hover {
+            border-color: #2f6fec;
+            background: #f6f9ff;
+        }
+
+        .upload-icon {
+            font-size: 55px;
+            margin-bottom: 15px;
+        }
+
+        .upload-title {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .upload-text {
+            color: #64748b;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .camera {
+            display: none;
+            background: #111827;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        video {
+            width: 100%;
+            max-height: 600px;
+            display: block;
+            background: black;
+        }
+
+        .camera-buttons {
+            padding: 18px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .camera-buttons button {
+            padding: 13px 20px;
+            border: 0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .capture {
+            background: #2f6fec;
+            color: white;
+        }
+
+        .stop {
+            background: #475569;
+            color: white;
+        }
+
+        .preview {
+            display: none;
+            margin-top: 25px;
+        }
+
+        .preview img {
+            max-width: 100%;
+            max-height: 600px;
+            display: block;
+            margin: auto;
+            border-radius: 15px;
+        }
+
+        .remove {
+            margin-top: 15px;
+            border: 0;
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 11px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .translate {
+            width: 100%;
+            margin-top: 25px;
+            padding: 17px;
+            border: 0;
+            border-radius: 14px;
+            background: #2f6fec;
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .translate:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .result-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .result-head {
+            padding: 15px;
+            background: #f8fafc;
+            font-weight: 800;
+        }
+
+        .result-body {
+            padding: 20px;
+            min-height: 150px;
+            white-space: pre-wrap;
+        }
+
+        .error {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff1f2;
+            color: #be123c;
+            border-radius: 12px;
+        }
+
+        @media (max-width: 750px) {
+            header {
+                padding: 0 18px;
+            }
+
+            main {
+                padding: 30px 15px;
+            }
+
+            h1 {
+                font-size: 34px;
+            }
+
+            .languages {
+                grid-template-columns: 1fr;
+            }
+
+            .swap {
+                margin: auto;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modes {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">Voxify</div>
+
+    <button
+        class="back"
+        onclick="window.location.href='/'"
+    >
+        ← Dashboard
+    </button>
+</header>
+
+<main>
+
+    <h1>Image Translation</h1>
+
+    <div class="subtitle">
+        Upload an image or use your live camera to translate text.
+    </div>
+
+    <div class="card">
+
+        <div class="modes">
+
+            <button
+                id="uploadMode"
+                class="mode active"
+            >
+                🖼️ Upload Image
+            </button>
+
+            <button
+                id="cameraMode"
+                class="mode"
+            >
+                📷 Live Camera
+            </button>
+
+        </div>
+
+        <div class="languages">
+
+            <div>
+                <label>Source Language</label>
+
+                <select id="sourceLanguage">
+                    <option value="auto">Auto Detect</option>
+                    <option value="en-IN">English</option>
+                    <option value="gu-IN">Gujarati</option>
+                    <option value="hi-IN">Hindi</option>
+                    <option value="mr-IN">Marathi</option>
+                    <option value="ta-IN">Tamil</option>
+                </select>
+            </div>
+
+            <button
+                class="swap"
+                id="swap"
+            >
+                ⇄
+            </button>
+
+            <div>
+                <label>Target Language</label>
+
+                <select id="targetLanguage">
+                    <option value="en-IN">English</option>
+                    <option value="gu-IN">Gujarati</option>
+                    <option value="hi-IN">Hindi</option>
+                    <option value="mr-IN">Marathi</option>
+                    <option value="ta-IN">Tamil</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div
+            class="upload"
+            id="uploadArea"
+        >
+
+            <div class="upload-icon">
+                🖼️
+            </div>
+
+            <div class="upload-title">
+                Upload Image
+            </div>
+
+            <div class="upload-text">
+                Click here or drag & drop an image
+            </div>
+
+            <div class="upload-text">
+                JPG, JPEG, PNG, WEBP — Maximum 10 MB
+            </div>
+
+            <input
+                id="imageInput"
+                type="file"
+                accept="image/*"
+                capture="environment"
+            >
+
+        </div>
+
+        <div
+            class="camera"
+            id="cameraArea"
+        >
+
+            <video
+                id="video"
+                autoplay
+                playsinline
+            ></video>
+
+            <div class="camera-buttons">
+
+                <button
+                    class="capture"
+                    id="capture"
+                >
+                    📸 Capture
+                </button>
+
+                <button
+                    class="stop"
+                    id="stop"
+                >
+                    Stop Camera
+                </button>
+
+            </div>
+
+        </div>
+
+        <canvas
+            id="canvas"
+            style="display:none"
+        ></canvas>
+
+        <div
+            class="preview"
+            id="preview"
+        >
+
+            <img
+                id="previewImage"
+                alt="Image Preview"
+            >
+
+            <button
+                class="remove"
+                id="remove"
+            >
+                Remove Image
+            </button>
+
+        </div>
+
+        <button
+            class="translate"
+            id="translate"
+            disabled
+        >
+            Translate Image
+        </button>
+
+        <div
+            class="error"
+            id="error"
+        ></div>
+
+        <div
+            class="result"
+            id="result"
+        >
+
+            <h2>Translation Result</h2>
+
+            <div class="result-grid">
+
+                <div class="result-box">
+                    <div class="result-head">
+                        Original Text
+                    </div>
+
+                    <div
+                        class="result-body"
+                        id="original"
+                    ></div>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-head">
+                        Translated Text
+                    </div>
+
+                    <div
+                        class="result-body"
+                        id="translated"
+                    ></div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+<script>
+
+    let selectedFile = null;
+    let stream = null;
+
+    const uploadMode =
+        document.getElementById("uploadMode");
+
+    const cameraMode =
+        document.getElementById("cameraMode");
+
+    const uploadArea =
+        document.getElementById("uploadArea");
+
+    const cameraArea =
+        document.getElementById("cameraArea");
+
+    const imageInput =
+        document.getElementById("imageInput");
+
+    const video =
+        document.getElementById("video");
+
+    const canvas =
+        document.getElementById("canvas");
+
+    const capture =
+        document.getElementById("capture");
+
+    const stop =
+        document.getElementById("stop");
+
+    const preview =
+        document.getElementById("preview");
+
+    const previewImage =
+        document.getElementById("previewImage");
+
+    const remove =
+        document.getElementById("remove");
+
+    const translate =
+        document.getElementById("translate");
+
+    const error =
+        document.getElementById("error");
+
+    const result =
+        document.getElementById("result");
+
+    function showError(message) {
+        error.textContent = message;
+        error.style.display = "block";
+    }
+
+    function clearError() {
+        error.textContent = "";
+        error.style.display = "none";
+    }
+
+    function selectImage(file) {
+
+        clearError();
+
+        if (!file) {
+            return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+            showError("Please select a valid image.");
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            showError("Image must be smaller than 10 MB.");
+            return;
+        }
+
+        selectedFile = file;
+
+        previewImage.src =
+            URL.createObjectURL(file);
+
+        preview.style.display = "block";
+
+        translate.disabled = false;
+
+        result.style.display = "none";
+    }
+
+    uploadArea.addEventListener(
+        "click",
+        () => {
+            imageInput.click();
+        }
+    );
+
+    imageInput.addEventListener(
+        "change",
+        () => {
+
+            if (imageInput.files.length > 0) {
+                selectImage(
+                    imageInput.files[0]
+                );
+            }
+
+        }
+    );
+
+    uploadArea.addEventListener(
+        "dragover",
+        (event) => {
+            event.preventDefault();
+        }
+    );
+
+    uploadArea.addEventListener(
+        "drop",
+        (event) => {
+
+            event.preventDefault();
+
+            if (
+                event.dataTransfer.files.length > 0
+            ) {
+                selectImage(
+                    event.dataTransfer.files[0]
+                );
+            }
+        }
+    );
+
+    cameraMode.addEventListener(
+        "click",
+        async () => {
+
+            clearError();
+
+            uploadMode.classList.remove("active");
+            cameraMode.classList.add("active");
+
+            uploadArea.style.display = "none";
+            cameraArea.style.display = "block";
+
+            try {
+
+                stream =
+                    await navigator.mediaDevices.getUserMedia(
+                        {
+                            video: {
+                                facingMode: {
+                                    ideal: "environment"
+                                }
+                            },
+                            audio: false
+                        }
+                    );
+
+                video.srcObject = stream;
+
+            } catch (err) {
+
+                showError(
+                    "Camera permission denied or camera is unavailable."
+                );
+
+                uploadMode.click();
+            }
+        }
+    );
+
+    uploadMode.addEventListener(
+        "click",
+        () => {
+
+            uploadMode.classList.add("active");
+            cameraMode.classList.remove("active");
+
+            uploadArea.style.display = "flex";
+            cameraArea.style.display = "none";
+
+            stopCamera();
+        }
+    );
+
+    capture.addEventListener(
+        "click",
+        () => {
+
+            if (
+                !video.videoWidth ||
+                !video.videoHeight
+            ) {
+                showError(
+                    "Camera is not ready yet."
+                );
+                return;
+            }
+
+            canvas.width =
+                video.videoWidth;
+
+            canvas.height =
+                video.videoHeight;
+
+            const ctx =
+                canvas.getContext("2d");
+
+            ctx.drawImage(
+                video,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+            canvas.toBlob(
+                (blob) => {
+
+                    const file =
+                        new File(
+                            [blob],
+                            "camera-image.jpg",
+                            {
+                                type:
+                                    "image/jpeg"
+                            }
+                        );
+
+                    selectImage(file);
+
+                    uploadMode.click();
+                },
+                "image/jpeg",
+                0.92
+            );
+        }
+    );
+
+    stop.addEventListener(
+        "click",
+        () => {
+            uploadMode.click();
+        }
+    );
+
+    function stopCamera() {
+
+        if (stream) {
+
+            stream
+                .getTracks()
+                .forEach(
+                    track => track.stop()
+                );
+
+            stream = null;
+        }
+
+        video.srcObject = null;
+    }
+
+    remove.addEventListener(
+        "click",
+        () => {
+
+            selectedFile = null;
+
+            imageInput.value = "";
+
+            previewImage.src = "";
+
+            preview.style.display = "none";
+
+            translate.disabled = true;
+
+            result.style.display = "none";
+
+            clearError();
+        }
+    );
+
+    document
+        .getElementById("swap")
+        .addEventListener(
+            "click",
+            () => {
+
+                const source =
+                    document.getElementById(
+                        "sourceLanguage"
+                    );
+
+                const target =
+                    document.getElementById(
+                        "targetLanguage"
+                    );
+
+                if (source.value === "auto") {
+                    showError(
+                        "Select a source language before swapping."
+                    );
+                    return;
+                }
+
+                const temp =
+                    source.value;
+
+                source.value =
+                    target.value;
+
+                target.value =
+                    temp;
+            }
+        );
+
+    translate.addEventListener(
+        "click",
+        () => {
+
+            if (!selectedFile) {
+                showError(
+                    "Please upload or capture an image first."
+                );
+                return;
+            }
+
+            showError(
+                "Image translation backend will be connected in the next step."
+            );
+        }
+    );
+
+    window.addEventListener(
+        "beforeunload",
+        stopCamera
+    );
+
+</script>
+
+</body>
+</html>

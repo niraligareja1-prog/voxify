@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Voxify - Audio to Text</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f8ff;
+      color: #14213d;
+    }
+
+    .header {
+      height: 110px;
+      background: #fff;
+      border-bottom: 1px solid #e5eaf2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 42px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      background: #2f6fed;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 800;
+    }
+
+    .brand-name {
+      font-size: 27px;
+      font-weight: 800;
+    }
+
+    .dashboard-btn {
+      border: none;
+      background: #eef4ff;
+      color: #2867df;
+      border-radius: 13px;
+      padding: 14px 22px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .dashboard-btn:hover {
+      background: #e1ebff;
+    }
+
+    .main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 55px 30px 80px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 42px;
+      font-weight: 800;
+    }
+
+    .description {
+      margin-top: 14px;
+      color: #64748b;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .card {
+      margin-top: 35px;
+      background: #fff;
+      border: 1px solid #e1e8f2;
+      border-radius: 22px;
+      padding: 42px;
+      box-shadow: 0 15px 45px rgba(30, 64, 175, 0.08);
+    }
+
+    .upload-box {
+      border: 2px dashed #c9d8ee;
+      border-radius: 20px;
+      padding: 45px 30px;
+      text-align: center;
+      background: #fbfdff;
+    }
+
+    .mic-icon {
+      font-size: 42px;
+      margin-bottom: 12px;
+    }
+
+    .upload-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin: 0 0 8px;
+    }
+
+    .upload-description {
+      color: #64748b;
+      margin: 0 0 25px;
+      font-size: 16px;
+    }
+
+    .choose-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      background: #eef4ff;
+      color: #2f6fed;
+      border-radius: 12px;
+      padding: 14px 22px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .choose-btn:hover {
+      background: #e2ecff;
+    }
+
+    .choose-btn input {
+      display: none;
+    }
+
+    .or {
+      margin: 23px 0;
+      color: #94a3b8;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .microphone-section {
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .microphone-label {
+      display: block;
+      text-align: left;
+      margin-bottom: 9px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .microphone-select {
+      width: 100%;
+      padding: 14px 15px;
+      border: 1px solid #d5dfec;
+      border-radius: 12px;
+      background: #fff;
+      font-size: 15px;
+      color: #14213d;
+      outline: none;
+    }
+
+    .record-btn,
+    .stop-btn {
+      margin-top: 18px;
+      border: none;
+      color: #fff;
+      border-radius: 13px;
+      padding: 15px 25px;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .record-btn {
+      background: #2f6fed;
+    }
+
+    .record-btn:hover {
+      background: #255fd0;
+    }
+
+    .stop-btn {
+      background: #dc2626;
+    }
+
+    .level-area {
+      display: none;
+      max-width: 650px;
+      margin: 24px auto 0;
+      text-align: left;
+    }
+
+    .level-header {
+      display: flex;
+      justify-content: space-between;
+      color: #475569;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .level-track {
+      width: 100%;
+      height: 11px;
+      background: #e2e8f0;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .level-fill {
+      height: 100%;
+      width: 2%;
+      background: #2f6fed;
+      border-radius: 20px;
+      transition: width 80ms linear;
+    }
+
+    .level-message {
+      margin-top: 9px;
+      font-size: 13px;
+      color: #b45309;
+    }
+
+    .recording-status {
+      display: none;
+      margin-top: 18px;
+      color: #dc2626;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .audio-preview {
+      display: none;
+      margin-top: 30px;
+    }
+
+    .file-box {
+      padding: 17px 20px;
+      border: 1px solid #dce5f0;
+      border-radius: 15px;
+      background: #f8fafc;
+    }
+
+    .file-name {
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .file-size {
+      margin-top: 4px;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 18px;
+    }
+
+    .translate-area {
+      margin-top: 30px;
+      text-align: left;
+    }
+
+    .translate-label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .target-language {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid #d5dfec;
+      border-radius: 12px;
+      background: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .process-btn {
+      width: 100%;
+      margin-top: 32px;
+      border: none;
+      background: #2f6fed;
+      color: #fff;
+      border-radius: 14px;
+      padding: 19px;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .process-btn:hover {
+      background: #255fd0;
+    }
+
+    .process-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .status-box {
+      display: none;
+      margin-top: 22px;
+      padding: 17px 20px;
+      border-radius: 14px;
+      font-weight: 600;
+    }
+
+    .success {
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    .error {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .result {
+      display: none;
+      margin-top: 22px;
+      padding: 22px;
+      border: 1px solid #dce5f0;
+      border-radius: 15px;
+      background: #fbfdff;
+    }
+
+    .result-label {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .result-value,
+    .result-text {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 700px) {
+      .header {
+        padding: 0 18px;
+      }
+
+      .main {
+        padding: 35px 15px;
+      }
+
+      .card {
+        padding: 22px;
+      }
+
+      .title {
+        font-size: 32px;
+      }
+
+      .dashboard-btn {
+        padding: 11px 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="header">
+
+    <div class="brand">
+
+      <div class="logo">V</div>
+
+      <div class="brand-name">
+        Voxify
+      </div>
+
+    </div>
+
+    <button
+      class="dashboard-btn"
+      onclick="goDashboard()"
+    >
+      ← Dashboard
+    </button>
+
+  </header>
+
+
+  <main class="main">
+
+    <h1 class="title">
+      Audio → Text
+    </h1>
+
+    <p class="description">
+      Upload an audio file or record your voice live.
+      Voxify will automatically detect the spoken language
+      and convert speech into text.
+    </p>
+
+
+    <section class="card">
+
+      <div class="upload-box">
+
+        <div class="mic-icon">
+          🎙️
+        </div>
+
+        <h2 class="upload-title">
+          Upload your audio
+        </h2>
+
+        <p class="upload-description">
+          MP3, WAV, M4A, OGG, WEBM, FLAC or AAC
+        </p>
+
+        <label class="choose-btn">
+
+          📤 Choose Audio File
+
+          <input
+            id="audioFile"
+            type="file"
+            accept="audio/*,.mp3,.wav,.m4a,.ogg,.webm,.flac,.aac"
+          />
+
+        </label>
+
+
+        <div class="or">
+          OR
+        </div>
+
+
+        <div class="microphone-section">
+
+          <label
+            class="microphone-label"
+            for="microphoneSelect"
+          >
+            🎙️ Microphone
+          </label>
+
+          <select
+            id="microphoneSelect"
+            class="microphone-select"
+          >
+            <option value="">
+              Default Microphone
+            </option>
+          </select>
+
+
+          <button
+            id="recordButton"
+            class="record-btn"
+            type="button"
+          >
+            🎙️ Start Recording
+          </button>
+
+
+          <button
+            id="stopButton"
+            class="stop-btn"
+            type="button"
+            style="display:none;"
+          >
+            ■ Stop Recording
+          </button>
+
+
+          <div
+            id="levelArea"
+            class="level-area"
+          >
+
+            <div class="level-header">
+
+              <span>
+                Microphone Input
+              </span>
+
+              <span id="levelValue">
+                0%
+              </span>
+
+            </div>
+
+
+            <div class="level-track">
+
+              <div
+                id="levelFill"
+                class="level-fill"
+              ></div>
+
+            </div>
+
+
+            <div
+              id="levelMessage"
+              class="level-message"
+            >
+              Speak into the microphone.
+            </div>
+
+          </div>
+
+
+          <div
+            id="recordingStatus"
+            class="recording-status"
+          >
+
+            <span class="recording-dot"></span>
+
+            Recording...
+
+            <span id="recordingTime">
+              00:00
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="audioPreview"
+          class="audio-preview"
+        >
+
+          <div class="file-box">
+
+            <div
+              id="fileName"
+              class="file-name"
+            ></div>
+
+            <div
+              id="fileSize"
+              class="file-size"
+            ></div>
+
+          </div>
+
+
+          <audio
+            id="audioPlayer"
+            controls
+          ></audio>
+
+        </div>
+
+
+        <div class="translate-area">
+
+          <label
+            class="translate-label"
+            for="targetLanguage"
+          >
+            Translate Result To
+          </label>
+
+
+          <select
+            id="targetLanguage"
+            class="target-language"
+          >
+
+            <option value="en-IN">
+              English
+            </option>
+
+            <option value="gu-IN">
+              Gujarati
+            </option>
+
+            <option value="hi-IN">
+              Hindi
+            </option>
+
+            <option value="mr-IN">
+              Marathi
+            </option>
+
+            <option value="ta-IN">
+              Tamil
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <button
+          id="processButton"
+          class="process-btn"
+          type="button"
+        >
+          Process Audio
+        </button>
+
+
+        <div
+          id="successBox"
+          class="status-box success"
+        ></div>
+
+
+        <div
+          id="errorBox"
+          class="status-box error"
+        ></div>
+
+
+        <div
+          id="languageResult"
+          class="result"
+        >
+
+          <div class="result-label">
+            DETECTED LANGUAGE
+          </div>
+
+          <div
+            id="detectedLanguage"
+            class="result-value"
+          ></div>
+
+        </div>
+
+
+        <div
+          id="textResult"
+          class="result"
+        >
+
+          <div class="result-label">
+            TRANSCRIBED TEXT
+          </div>
+
+          <div
+            id="transcribedText"
+            class="result-text"
+          ></div>
+
+        </div>
+
+
+        <div
+          id="translationResult"
+          class="result"
+        >
+
+          <div class="result-label">
+            TRANSLATION
+          </div>
+
+          <div
+            id="translatedText"
+            class="result-text"
+          ></div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script>
+
+    const API_BASE_URL =
+      "http://127.0.0.1:8000/api/v1";
+
+
+    let selectedFile = null;
+
+    let mediaRecorder = null;
+
+    let mediaStream = null;
+
+    let audioChunks = [];
+
+    let audioContext = null;
+
+    let analyser = null;
+
+    let animationFrame = null;
+
+    let recordingTimer = null;
+
+    let recordingSeconds = 0;
+
+
+    const audioFile =
+      document.getElementById(
+        "audioFile"
+      );
+
+    const recordButton =
+      document.getElementById(
+        "recordButton"
+      );
+
+    const stopButton =
+      document.getElementById(
+        "stopButton"
+      );
+
+    const processButton =
+      document.getElementById(
+        "processButton"
+      );
+
+    const microphoneSelect =
+      document.getElementById(
+        "microphoneSelect"
+      );
+
+    const targetLanguage =
+      document.getElementById(
+        "targetLanguage"
+      );
+
+    const audioPreview =
+      document.getElementById(
+        "audioPreview"
+      );
+
+    const audioPlayer =
+      document.getElementById(
+        "audioPlayer"
+      );
+
+    const fileName =
+      document.getElementById(
+        "fileName"
+      );
+
+    const fileSize =
+      document.getElementById(
+        "fileSize"
+      );
+
+    const successBox =
+      document.getElementById(
+        "successBox"
+      );
+
+    const errorBox =
+      document.getElementById(
+        "errorBox"
+      );
+
+    const languageResult =
+      document.getElementById(
+        "languageResult"
+      );
+
+    const textResult =
+      document.getElementById(
+        "textResult"
+      );
+
+    const translationResult =
+      document.getElementById(
+        "translationResult"
+      );
+
+    const detectedLanguage =
+      document.getElementById(
+        "detectedLanguage"
+      );
+
+    const transcribedText =
+      document.getElementById(
+        "transcribedText"
+      );
+
+    const translatedText =
+      document.getElementById(
+        "translatedText"
+      );
+
+    const recordingStatus =
+      document.getElementById(
+        "recordingStatus"
+      );
+
+    const recordingTime =
+      document.getElementById(
+        "recordingTime"
+      );
+
+    const levelArea =
+      document.getElementById(
+        "levelArea"
+      );
+
+    const levelFill =
+      document.getElementById(
+        "levelFill"
+      );
+
+    const levelValue =
+      document.getElementById(
+        "levelValue"
+      );
+
+    const levelMessage =
+      document.getElementById(
+        "levelMessage"
+      );
+
+
+    // --------------------------------------------------
+    // DASHBOARD
+    // --------------------------------------------------
+
+    function goDashboard() {
+
+      window.location.href =
+        "/";
+
+    }
+
+
+    // --------------------------------------------------
+    // FILE UPLOAD
+    // --------------------------------------------------
+
+    audioFile.addEventListener(
+      "change",
+      function (event) {
+
+        const file =
+          event.target.files[0];
+
+        if (!file) {
+          return;
+        }
+
+        selectedFile = file;
+
+        showAudio(file);
+
+        clearResults();
+
+        showSuccess(
+          "Audio file selected successfully."
+        );
+
+      }
+    );
+
+
+    function showAudio(file) {
+
+      fileName.textContent =
+        file.name;
+
+      fileSize.textContent =
+        formatFileSize(
+          file.size
+        );
+
+      audioPlayer.src =
+        URL.createObjectURL(file);
+
+      audioPreview.style.display =
+        "block";
+
+    }
+
+
+    function formatFileSize(bytes) {
+
+      if (bytes === 0) {
+        return "0 Bytes";
+      }
+
+      const units = [
+        "Bytes",
+        "KB",
+        "MB",
+        "GB"
+      ];
+
+      const index =
+        Math.floor(
+          Math.log(bytes) /
+          Math.log(1024)
+        );
+
+      return (
+        parseFloat(
+          (
+            bytes /
+            Math.pow(
+              1024,
+              index
+            )
+          ).toFixed(2)
+        ) +
+        " " +
+        units[index]
+      );
+
+    }
+
+
+    // --------------------------------------------------
+    // MICROPHONES
+    // --------------------------------------------------
+
+    async function loadMicrophones() {
+
+      if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.enumerateDevices
+      ) {
+
+        return;
+
+      }
+
+      try {
+
+        const devices =
+          await navigator.mediaDevices.enumerateDevices();
+
+        const microphones =
+          devices.filter(
+            device =>
+              device.kind ===
+              "audioinput"
+          );
+
+        microphoneSelect.innerHTML =
+          "";
+
+        const defaultOption =
+          document.createElement(
+            "option"
+          );
+
+        defaultOption.value = "";
+
+        defaultOption.textContent =
+          "Default Microphone";
+
+        microphoneSelect.appendChild(
+          defaultOption
+        );
+
+
+        microphones.forEach(
+          (device, index) => {
+
+            const option =
+              document.createElement(
+                "option"
+              );
+
+            option.value =
+              device.deviceId;
+
+            option.textContent =
+              device.label ||
+              `Microphone ${index + 1}`;
+
+            microphoneSelect.appendChild(
+              option
+            );
+
+          }
+        );
+
+      } catch (error) {
+
+        console.warn(
+          "Unable to load microphones:",
+          error
+        );
+
+      }
+
+    }
+
+
+    // --------------------------------------------------
+    // START RECORDING
+    // --------------------------------------------------
+
+    recordButton.addEventListener(
+      "click",
+      startRecording
+    );
+
+
+    async function startRecording() {
+
+      try {
+
+        clearResults();
+
+        const selectedDevice =
+          microphoneSelect.value;
+
+
+        const constraints = {
+
+          audio:
+            selectedDevice
+              ? {
+                  deviceId: {
+                    exact:
+                      selectedDevice
+                  }
+                }
+              : true
+
+        };
+
+
+        mediaStream =
+          await navigator.mediaDevices.getUserMedia(
+            constraints
+          );
+
+
+        audioChunks = [];
+
+
+        let mimeType =
+          "audio/webm";
+
+
+        if (
+          !MediaRecorder.isTypeSupported(
+            mimeType
+          )
+        ) {
+
+          mimeType =
+            "audio/webm;codecs=opus";
+
+        }
+
+
+        mediaRecorder =
+          new MediaRecorder(
+            mediaStream,
+            {
+              mimeType:
+                mimeType
+            }
+          );
+
+
+        mediaRecorder.ondataavailable =
+          function (event) {
+
+            if (
+              event.data &&
+              event.data.size > 0
+            ) {
+
+              audioChunks.push(
+                event.data
+              );
+
+            }
+
+          };
+
+
+        mediaRecorder.onstop =
+          function () {
+
+            createRecording();
+
+          };
+
+
+        mediaRecorder.start();
+
+
+        recordButton.style.display =
+          "none";
+
+        stopButton.style.display =
+          "inline-flex";
+
+        recordingStatus.style.display =
+          "block";
+
+        levelArea.style.display =
+          "block";
+
+
+        recordingSeconds = 0;
+
+        recordingTime.textContent =
+          "00:00";
+
+
+        recordingTimer =
+          setInterval(
+            updateRecordingTime,
+            1000
+          );
+
+
+        startMeter(
+          mediaStream
+        );
+
+
+        showSuccess(
+          "Recording started. Speak clearly for a few seconds."
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Recording error:",
+          error
+        );
+
+        showError(
+          error?.message ||
+          "Unable to access microphone."
+        );
+
+        stopEverything();
+
+      }
+
+    }
+
+
+    // --------------------------------------------------
+    // STOP RECORDING
+    // --------------------------------------------------
+
+    stopButton.addEventListener(
+      "click",
+      stopRecording
+    );
+
+
+    function stopRecording() {
+
+      if (
+        mediaRecorder &&
+        mediaRecorder.state !== "inactive"
+      ) {
+
+        mediaRecorder.stop();
+
+      }
+
+
+      if (recordingTimer) {
+
+        clearInterval(
+          recordingTimer
+        );
+
+        recordingTimer =
+          null;
+
+      }
+
+
+      recordButton.style.display =
+        "inline-flex";
+
+      stopButton.style.display =
+        "none";
+
+      recordingStatus.style.display =
+        "none";
+
+
+      if (mediaStream) {
+
+        mediaStream
+          .getTracks()
+          .forEach(
+            track => {
+
+              try {
+
+                track.stop();
+
+              } catch {}
+
+            }
+          );
+
+      }
+
+    }
+
+
+    // --------------------------------------------------
+    // CREATE RECORDING
+    // --------------------------------------------------
+
+    function createRecording() {
+
+      if (
+        !audioChunks.length
+      ) {
+
+        showError(
+          "No audio was recorded."
+        );
+
+        return;
+
+      }
+
+
+      const blob =
+        new Blob(
+          audioChunks,
+          {
+            type:
+              mediaRecorder?.mimeType ||
+              "audio/webm"
+          }
+        );
+
+
+      selectedFile =
+        new File(
+          [
+            blob
+          ],
+          `voxify-recording-${Date.now()}.webm`,
+          {
+            type:
+              blob.type
+          }
+        );
+
+
+      showAudio(
+        selectedFile
+      );
+
+
+      showSuccess(
+        "Recording completed successfully."
+      );
+
+
+      stopEverything();
+
+    }
+
+
+    // --------------------------------------------------
+    // MICROPHONE LEVEL METER
+    // --------------------------------------------------
+
+    async function startMeter(
+      stream
+    ) {
+
+      try {
+
+        const AudioContextClass =
+          window.AudioContext ||
+          window.webkitAudioContext;
+
+
+        if (!AudioContextClass) {
+
+          return;
+
+        }
+
+
+        audioContext =
+          new AudioContextClass();
+
+
+        const source =
+          audioContext.createMediaStreamSource(
+            stream
+          );
+
+
+        analyser =
+          audioContext.createAnalyser();
+
+
+        analyser.fftSize =
+          2048;
+
+
+        source.connect(
+          analyser
+        );
+
+
+        const data =
+          new Uint8Array(
+            analyser.fftSize
+          );
+
+
+        function updateLevel() {
+
+          if (!analyser) {
+
+            return;
+
+          }
+
+
+          analyser.getByteTimeDomainData(
+            data
+          );
+
+
+          let sum = 0;
+
+
+          for (
+            let i = 0;
+            i < data.length;
+            i++
+          ) {
+
+            const value =
+              (data[i] - 128) /
+              128;
+
+
+            sum +=
+              value * value;
+
+          }
+
+
+          const rms =
+            Math.sqrt(
+              sum /
+              data.length
+            );
+
+
+          const level =
+            Math.min(
+              100,
+              Math.round(
+                rms * 500
+              )
+            );
+
+
+          levelFill.style.width =
+            `${Math.max(
+              2,
+              level
+            )}%`;
+
+
+          levelValue.textContent =
+            `${level}%`;
+
+
+          if (level < 3) {
+
+            levelMessage.textContent =
+              "Speak into the microphone. No strong audio signal detected.";
+
+          } else {
+
+            levelMessage.textContent =
+              "✓ Microphone signal detected.";
+
+          }
+
+
+          animationFrame =
+            requestAnimationFrame(
+              updateLevel
+            );
+
+        }
+
+
+        updateLevel();
+
+
+      } catch (error) {
+
+        console.warn(
+          "Microphone meter error:",
+          error
+        );
+
+      }
+
+    }
+
+
+    // --------------------------------------------------
+    // RECORDING TIMER
+    // --------------------------------------------------
+
+    function updateRecordingTime() {
+
+      recordingTime.textContent =
+        formatTime(
+          recordingSeconds
+        );
+
+      recordingSeconds++;
+
+    }
+
+
+    function formatTime(
+      seconds
+    ) {
+
+      const minutes =
+        Math.floor(
+          seconds / 60
+        )
+          .toString()
+          .padStart(
+            2,
+            "0"
+          );
+
+
+      const remaining =
+        (
+          seconds % 60
+        )
+          .toString()
+          .padStart(
+            2,
+            "0"
+          );
+
+
+      return `${minutes}:${remaining}`;
+
+    }
+
+
+    // --------------------------------------------------
+    // PROCESS AUDIO
+    // --------------------------------------------------
+
+    processButton.addEventListener(
+      "click",
+      processAudio
+    );
+
+
+    async function processAudio() {
+
+      if (!selectedFile) {
+
+        showError(
+          "Please upload or record an audio file first."
+        );
+
+        return;
+
+      }
+
+
+      processButton.disabled =
+        true;
+
+
+      clearResults();
+
+
+      showSuccess(
+        "Uploading audio and detecting speech..."
+      );
+
+
+      try {
+
+        // ----------------------------------------------
+        // STEP 1: TRANSCRIBE AUDIO
+        // ----------------------------------------------
+
+        const formData =
+          new FormData();
+
+
+        formData.append(
+          "file",
+          selectedFile
+        );
+
+
+        const response =
+          await fetch(
+            `${API_BASE_URL}/audio/transcribe`,
+            {
+              method:
+                "POST",
+
+              body:
+                formData
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        console.log(
+          "Transcription response:",
+          data
+        );
+
+
+        if (
+          !response.ok ||
+          data?.success === false
+        ) {
+
+          throw new Error(
+            data?.error?.message ||
+            data?.detail ||
+            "Audio transcription failed."
+          );
+
+        }
+
+
+        // ----------------------------------------------
+        // GET DETECTED LANGUAGE + TEXT
+        // ----------------------------------------------
+
+        const sourceLanguage =
+          data.detected_language;
+
+
+        const sourceText =
+          (
+            data.transcribed_text ||
+            ""
+          ).trim();
+
+
+        if (
+          !sourceLanguage ||
+          !sourceText
+        ) {
+
+          throw new Error(
+            "No transcribed text was returned."
+          );
+
+        }
+
+
+        detectedLanguage.textContent =
+          `${data.detected_language_name} (${sourceLanguage})`;
+
+
+        transcribedText.textContent =
+          sourceText;
+
+
+        languageResult.style.display =
+          "block";
+
+
+        textResult.style.display =
+          "block";
+
+
+        // ----------------------------------------------
+        // STEP 2: GET TARGET LANGUAGE
+        // ----------------------------------------------
+
+        const selectedTargetLanguage =
+          targetLanguage.value;
+
+
+        if (
+          !selectedTargetLanguage
+        ) {
+
+          throw new Error(
+            "Please select a target language."
+          );
+
+        }
+
+
+        // ----------------------------------------------
+        // STEP 3: SAME LANGUAGE
+        // ----------------------------------------------
+
+        if (
+          sourceLanguage ===
+          selectedTargetLanguage
+        ) {
+
+          translatedText.textContent =
+            sourceText;
+
+
+          translationResult.style.display =
+            "block";
+
+
+          showSuccess(
+            "Audio transcribed successfully."
+          );
+
+
+          return;
+
+        }
+
+
+        // ----------------------------------------------
+        // STEP 4: TRANSLATE
+        // ----------------------------------------------
+
+        showSuccess(
+          "Audio transcribed. Translating..."
+        );
+
+
+        const translationResponse =
+          await fetch(
+            `${API_BASE_URL}/translation/text`,
+            {
+
+              method:
+                "POST",
+
+
+              headers: {
+
+                "Content-Type":
+                  "application/json",
+
+                "Accept":
+                  "application/json"
+
+              },
+
+
+              body:
+                JSON.stringify({
+
+                  // IMPORTANT:
+                  // Backend requires source_language
+
+                  text:
+                    sourceText,
+
+                  source_language:
+                    sourceLanguage,
+
+                  target_language:
+                    selectedTargetLanguage
+
+                })
+
+            }
+          );
+
+
+        const translationData =
+          await translationResponse.json();
+
+
+        console.log(
+          "Translation response:",
+          translationData
+        );
+
+
+        if (
+          !translationResponse.ok ||
+          translationData?.success === false
+        ) {
+
+          throw new Error(
+            translationData?.error?.message ||
+            translationData?.detail ||
+            "Translation failed."
+          );
+
+        }
+
+
+        const finalTranslatedText =
+          translationData.translated_text ||
+          translationData.translation ||
+          translationData.text;
+
+
+        if (
+          !finalTranslatedText
+        ) {
+
+          throw new Error(
+            "No translated text was returned."
+          );
+
+        }
+
+
+        translatedText.textContent =
+          finalTranslatedText;
+
+
+        translationResult.style.display =
+          "block";
+
+
+        showSuccess(
+          "Audio transcribed and translated successfully."
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Audio processing error:",
+          error
+        );
+
+
+        showError(
+          error?.message ||
+          "Audio transcription or translation failed."
+        );
+
+
+      } finally {
+
+        processButton.disabled =
+          false;
+
+      }
+
+    }
+
+
+    // --------------------------------------------------
+    // UI HELPERS
+    // --------------------------------------------------
+
+    function clearResults() {
+
+      successBox.style.display =
+        "none";
+
+
+      errorBox.style.display =
+        "none";
+
+
+      languageResult.style.display =
+        "none";
+
+
+      textResult.style.display =
+        "none";
+
+
+      translationResult.style.display =
+        "none";
+
+
+      detectedLanguage.textContent =
+        "";
+
+
+      transcribedText.textContent =
+        "";
+
+
+      translatedText.textContent =
+        "";
+
+    }
+
+
+    function showSuccess(
+      message
+    ) {
+
+      errorBox.style.display =
+        "none";
+
+
+      successBox.textContent =
+        "✓ " + message;
+
+
+      successBox.style.display =
+        "block";
+
+    }
+
+
+    function showError(
+      message
+    ) {
+
+      successBox.style.display =
+        "none";
+
+
+      errorBox.textContent =
+        "⚠ " + message;
+
+
+      errorBox.style.display =
+        "block";
+
+    }
+
+
+    // --------------------------------------------------
+    // STOP EVERYTHING
+    // --------------------------------------------------
+
+    function stopEverything() {
+
+      if (animationFrame) {
+
+        cancelAnimationFrame(
+          animationFrame
+        );
+
+
+        animationFrame =
+          null;
+
+      }
+
+
+      if (audioContext) {
+
+        audioContext
+          .close()
+          .catch(() => {});
+
+
+        audioContext =
+          null;
+
+      }
+
+
+      analyser =
+        null;
+
+
+      if (mediaStream) {
+
+        mediaStream
+          .getTracks()
+          .forEach(
+            track => {
+
+              try {
+
+                track.stop();
+
+              } catch {}
+
+            }
+          );
+
+
+        mediaStream =
+          null;
+
+      }
+
+
+      levelArea.style.display =
+        "none";
+
+    }
+
+
+    // --------------------------------------------------
+    // INITIALIZE
+    // --------------------------------------------------
+
+    loadMicrophones();
+
+
+    if (
+      navigator.mediaDevices &&
+      navigator.mediaDevices.addEventListener
+    ) {
+
+      navigator.mediaDevices.addEventListener(
+        "devicechange",
+        loadMicrophones
+      );
+
+    }
+
+
+    // --------------------------------------------------
+    // INITIAL UI STATE
+    // --------------------------------------------------
+
+    clearResults();
+
+
+    recordingStatus.style.display =
+      "none";
+
+
+    stopButton.style.display =
+      "none";
+
+
+    levelArea.style.display =
+      "none";
+
+
+    // --------------------------------------------------
+    // CLEANUP ON PAGE EXIT
+    // --------------------------------------------------
+
+    window.addEventListener(
+      "beforeunload",
+      function () {
+
+        if (recordingTimer) {
+
+          clearInterval(
+            recordingTimer
+          );
+
+          recordingTimer =
+            null;
+
+        }
+
+
+        if (
+          mediaRecorder &&
+          mediaRecorder.state !==
+            "inactive"
+        ) {
+
+          try {
+
+            mediaRecorder.stop();
+
+          } catch {}
+
+        }
+
+
+        stopEverything();
+
+      }
+    );
+
+  </script>
+
+</body>
+
+</html>

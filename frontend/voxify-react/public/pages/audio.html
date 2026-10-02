@@ -1,0 +1,1138 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voxify - Audio</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f8ff;
+            color: #172033;
+        }
+
+        .topbar {
+            height: 86px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5eaf2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 42px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 15px;
+            background: #2f6fed;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .dashboard-btn {
+            border: 0;
+            background: #edf3ff;
+            color: #2867e8;
+            padding: 13px 22px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .dashboard-btn:hover {
+            background: #dfeaff;
+        }
+
+        .page {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 52px 28px 80px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 42px;
+            color: #14213d;
+        }
+
+        .subtitle {
+            margin-top: 14px;
+            font-size: 19px;
+            color: #63718a;
+        }
+
+        .card {
+            margin-top: 38px;
+            background: white;
+            border-radius: 24px;
+            padding: 34px;
+            box-shadow: 0 10px 35px rgba(35, 75, 130, 0.08);
+            border: 1px solid #e5ebf5;
+        }
+
+        .upload-box {
+            border: 2px dashed #c9d9f3;
+            border-radius: 22px;
+            padding: 42px 30px;
+            text-align: center;
+            background: #fbfdff;
+        }
+
+        .mic-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .upload-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .formats {
+            color: #71809a;
+            font-size: 17px;
+            margin-bottom: 25px;
+        }
+
+        .choose-btn,
+        .record-btn {
+            border: 0;
+            border-radius: 13px;
+            padding: 15px 28px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .choose-btn {
+            background: #edf3ff;
+            color: #2867e8;
+        }
+
+        .choose-btn:hover {
+            background: #dce8ff;
+        }
+
+        .or {
+            margin: 25px 0;
+            color: #8a98ae;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .section-label {
+            display: block;
+            text-align: left;
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .mic-select,
+        .language-select {
+            width: 100%;
+            padding: 15px 16px;
+            border: 1px solid #d5dfef;
+            border-radius: 13px;
+            background: white;
+            font-size: 17px;
+            color: #172033;
+            outline: none;
+        }
+
+        .mic-select:focus,
+        .language-select:focus {
+            border-color: #2f6fed;
+        }
+
+        .record-btn {
+            margin-top: 18px;
+            background: #2f6fed;
+            color: white;
+            min-width: 230px;
+        }
+
+        .record-btn.stop {
+            background: #dc3545;
+        }
+
+        .record-btn:hover {
+            opacity: 0.93;
+        }
+
+        .meter-wrap {
+            margin-top: 22px;
+            display: none;
+            text-align: left;
+        }
+
+        .meter-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #56657e;
+            margin-bottom: 8px;
+        }
+
+        .meter {
+            height: 12px;
+            background: #e9eef7;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 0%;
+            background: #2f6fed;
+            border-radius: 20px;
+            transition: width 0.08s linear;
+        }
+
+        .status {
+            margin-top: 18px;
+            padding: 15px 18px;
+            border-radius: 13px;
+            display: none;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .status.success {
+            display: block;
+            background: #eafaf2;
+            color: #087443;
+        }
+
+        .status.error {
+            display: block;
+            background: #fff0f0;
+            color: #c62828;
+        }
+
+        .status.info {
+            display: block;
+            background: #eef5ff;
+            color: #245dbd;
+        }
+
+        .file-box {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: #f7faff;
+            border: 1px solid #dce6f5;
+            border-radius: 15px;
+            text-align: left;
+        }
+
+        .file-name {
+            font-weight: 700;
+            word-break: break-all;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .target-section {
+            margin-top: 30px;
+        }
+
+        .translate-btn {
+            width: 100%;
+            margin-top: 25px;
+            border: 0;
+            border-radius: 14px;
+            padding: 18px;
+            background: #2f6fed;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .translate-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 18px;
+            background: #f7faff;
+            border: 1px solid #dce6f5;
+            text-align: left;
+        }
+
+        .result h3 {
+            margin-top: 0;
+            color: #17345f;
+        }
+
+        .result-text {
+            font-size: 20px;
+            line-height: 1.65;
+            white-space: pre-wrap;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 18px;
+            padding: 12px 20px;
+            background: #edf3ff;
+            color: #2867e8;
+            text-decoration: none;
+            border-radius: 11px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 700px) {
+            .topbar {
+                padding: 0 18px;
+            }
+
+            .page {
+                padding: 35px 16px 60px;
+            }
+
+            h1 {
+                font-size: 32px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="brand">
+        <div class="logo">V</div>
+        <span>Voxify</span>
+    </div>
+
+    <button class="dashboard-btn" onclick="window.location.href='/'">
+        ← Dashboard
+    </button>
+</header>
+
+<main class="page">
+
+    <h1 id="pageTitle">Audio → Text</h1>
+
+    <div class="subtitle" id="pageSubtitle">
+        Upload or record audio. Voxify will automatically detect the spoken language.
+    </div>
+
+    <section class="card">
+
+        <div class="upload-box">
+
+            <div class="mic-icon">🎙️</div>
+
+            <div class="upload-title">
+                Upload your audio
+            </div>
+
+            <div class="formats">
+                MP3, WAV, M4A, OGG, WEBM, FLAC or AAC
+            </div>
+
+            <input
+                type="file"
+                id="audioFile"
+                accept=".mp3,.wav,.m4a,.ogg,.webm,.flac,.aac,audio/*"
+                hidden
+            />
+
+            <button
+                class="choose-btn"
+                onclick="document.getElementById('audioFile').click()"
+            >
+                ⬆ Choose Audio File
+            </button>
+
+            <div class="or">OR</div>
+
+            <label class="section-label">
+                🎙️ Microphone
+            </label>
+
+            <select id="microphoneSelect" class="mic-select">
+                <option value="">Default microphone</option>
+            </select>
+
+            <button id="recordButton" class="record-btn">
+                🎙 Start Recording
+            </button>
+
+            <div id="meterWrap" class="meter-wrap">
+                <div class="meter-title">
+                    Microphone input
+                    <span id="meterPercent">0%</span>
+                </div>
+
+                <div class="meter">
+                    <div id="meterFill" class="meter-fill"></div>
+                </div>
+            </div>
+
+            <div id="status" class="status"></div>
+
+        </div>
+
+        <div id="fileBox" class="file-box">
+
+            <div class="file-name" id="fileName"></div>
+
+            <audio id="audioPreview" controls></audio>
+
+        </div>
+
+        <div class="target-section">
+
+            <label class="section-label">
+                🌐 Translate to
+            </label>
+
+            <select id="targetLanguage" class="language-select">
+                <option value="en-IN">English</option>
+                <option value="hi-IN">Hindi</option>
+                <option value="gu-IN">Gujarati</option>
+                <option value="mr-IN">Marathi</option>
+                <option value="ta-IN">Tamil</option>
+            </select>
+
+        </div>
+
+        <button id="processButton" class="translate-btn" disabled>
+            🎙 Transcribe & Translate
+        </button>
+
+        <div id="result" class="result">
+
+            <h3>Detected Language</h3>
+            <div id="detectedLanguage"></div>
+
+            <h3 style="margin-top:22px;">Translated Text</h3>
+            <div id="resultText" class="result-text"></div>
+
+            <div id="audioOutputBox" style="display:none; margin-top:25px;">
+                <h3>Translated Audio</h3>
+                <audio id="outputAudio" controls></audio>
+                <br>
+                <a id="downloadAudio" class="download-btn" download="voxify-translated-audio.mp3">
+                    ⬇ Download Audio
+                </a>
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+    const API_BASE = "http://127.0.0.1:8000/api/v1";
+
+    const fileInput = document.getElementById("audioFile");
+    const microphoneSelect = document.getElementById("microphoneSelect");
+    const recordButton = document.getElementById("recordButton");
+    const processButton = document.getElementById("processButton");
+    const targetLanguage = document.getElementById("targetLanguage");
+
+    const fileBox = document.getElementById("fileBox");
+    const fileName = document.getElementById("fileName");
+    const audioPreview = document.getElementById("audioPreview");
+
+    const meterWrap = document.getElementById("meterWrap");
+    const meterFill = document.getElementById("meterFill");
+    const meterPercent = document.getElementById("meterPercent");
+
+    const statusBox = document.getElementById("status");
+
+    const resultBox = document.getElementById("result");
+    const detectedLanguage = document.getElementById("detectedLanguage");
+    const resultText = document.getElementById("resultText");
+
+    const audioOutputBox = document.getElementById("audioOutputBox");
+    const outputAudio = document.getElementById("outputAudio");
+    const downloadAudio = document.getElementById("downloadAudio");
+
+    let selectedFile = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let mediaStream = null;
+
+    let audioContext = null;
+    let analyser = null;
+    let animationFrame = null;
+
+    let maxInputLevel = 0;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get("mode") || "audio-to-text";
+
+    if (mode === "audio-to-audio") {
+        document.getElementById("pageTitle").textContent = "Audio → Audio";
+        document.getElementById("pageSubtitle").textContent =
+            "Upload or record audio. Voxify will detect the language, translate it and generate translated audio.";
+
+        processButton.textContent = "🔊 Translate Audio";
+    }
+
+    function showStatus(message, type) {
+        statusBox.textContent = message;
+        statusBox.className = "status " + type;
+    }
+
+    function clearStatus() {
+        statusBox.textContent = "";
+        statusBox.className = "status";
+    }
+
+    async function loadMicrophones() {
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+            return;
+        }
+
+        try {
+
+            const tempStream =
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            tempStream.getTracks().forEach(track => track.stop());
+
+            const devices =
+                await navigator.mediaDevices.enumerateDevices();
+
+            const microphones =
+                devices.filter(device => device.kind === "audioinput");
+
+            microphoneSelect.innerHTML =
+                '<option value="">Default microphone</option>';
+
+            microphones.forEach((device, index) => {
+
+                const option = document.createElement("option");
+
+                option.value = device.deviceId;
+
+                option.textContent =
+                    device.label ||
+                    `Microphone ${index + 1}`;
+
+                microphoneSelect.appendChild(option);
+            });
+
+        } catch (error) {
+
+            console.error("Microphone list error:", error);
+
+            showStatus(
+                "Microphone permission is required for live recording.",
+                "error"
+            );
+        }
+    }
+
+    function startInputMeter(stream) {
+
+        try {
+
+            audioContext =
+                new (window.AudioContext || window.webkitAudioContext)();
+
+            analyser =
+                audioContext.createAnalyser();
+
+            analyser.fftSize = 2048;
+
+            const source =
+                audioContext.createMediaStreamSource(stream);
+
+            source.connect(analyser);
+
+            const data =
+                new Uint8Array(analyser.fftSize);
+
+            meterWrap.style.display = "block";
+
+            function updateMeter() {
+
+                if (!analyser) {
+                    return;
+                }
+
+                analyser.getByteTimeDomainData(data);
+
+                let sum = 0;
+
+                for (let i = 0; i < data.length; i++) {
+
+                    const value =
+                        (data[i] - 128) / 128;
+
+                    sum += value * value;
+                }
+
+                const rms =
+                    Math.sqrt(sum / data.length);
+
+                const percent =
+                    Math.min(100, Math.round(rms * 500));
+
+                if (percent > maxInputLevel) {
+                    maxInputLevel = percent;
+                }
+
+                meterFill.style.width = percent + "%";
+                meterPercent.textContent = percent + "%";
+
+                animationFrame =
+                    requestAnimationFrame(updateMeter);
+            }
+
+            updateMeter();
+
+        } catch (error) {
+
+            console.error("Audio meter error:", error);
+        }
+    }
+
+    function stopInputMeter() {
+
+        if (animationFrame) {
+            cancelAnimationFrame(animationFrame);
+            animationFrame = null;
+        }
+
+        if (audioContext) {
+
+            try {
+                audioContext.close();
+            } catch (e) {}
+
+            audioContext = null;
+        }
+
+        analyser = null;
+
+        meterFill.style.width = "0%";
+        meterPercent.textContent = "0%";
+    }
+
+    async function startRecording() {
+
+        clearStatus();
+
+        if (!navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia) {
+
+            showStatus(
+                "Your browser does not support microphone recording.",
+                "error"
+            );
+
+            return;
+        }
+
+        try {
+
+            const deviceId =
+                microphoneSelect.value;
+
+            const audioConstraints = {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+                channelCount: 1
+            };
+
+            if (deviceId) {
+                audioConstraints.deviceId = {
+                    exact: deviceId
+                };
+            }
+
+            mediaStream =
+                await navigator.mediaDevices.getUserMedia({
+                    audio: audioConstraints
+                });
+
+            const track =
+                mediaStream.getAudioTracks()[0];
+
+            console.log(
+                "Selected microphone:",
+                track ? track.label : "unknown"
+            );
+
+            console.log(
+                "Microphone settings:",
+                track ? track.getSettings() : {}
+            );
+
+            recordedChunks = [];
+            maxInputLevel = 0;
+
+            let mimeType = "";
+
+            const supportedTypes = [
+                "audio/webm;codecs=opus",
+                "audio/webm",
+                "audio/ogg;codecs=opus",
+                "audio/mp4"
+            ];
+
+            for (const type of supportedTypes) {
+
+                if (MediaRecorder.isTypeSupported(type)) {
+                    mimeType = type;
+                    break;
+                }
+            }
+
+            mediaRecorder =
+                mimeType
+                    ? new MediaRecorder(
+                        mediaStream,
+                        {
+                            mimeType,
+                            audioBitsPerSecond: 128000
+                        }
+                    )
+                    : new MediaRecorder(mediaStream);
+
+            mediaRecorder.ondataavailable = event => {
+
+                if (event.data &&
+                    event.data.size > 0) {
+
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = finishRecording;
+
+            startInputMeter(mediaStream);
+
+            mediaRecorder.start(250);
+
+            recordButton.textContent = "⏹ Stop Recording";
+            recordButton.classList.add("stop");
+
+            showStatus(
+                "Recording... Speak normally for 3–10 seconds.",
+                "success"
+            );
+
+        } catch (error) {
+
+            console.error("Microphone error:", error);
+
+            showStatus(
+                "Could not start microphone: " +
+                (error.message || error),
+                "error"
+            );
+        }
+    }
+
+    function stopRecording() {
+
+        if (!mediaRecorder ||
+            mediaRecorder.state === "inactive") {
+            return;
+        }
+
+        mediaRecorder.stop();
+
+        if (mediaStream) {
+
+            mediaStream.getTracks().forEach(track => {
+                track.stop();
+            });
+        }
+
+        stopInputMeter();
+
+        recordButton.textContent = "🎙 Start Recording";
+        recordButton.classList.remove("stop");
+
+        showStatus(
+            "Processing your recording...",
+            "info"
+        );
+    }
+
+    function finishRecording() {
+
+        const mime =
+            mediaRecorder.mimeType ||
+            "audio/webm";
+
+        const blob =
+            new Blob(recordedChunks, {
+                type: mime
+            });
+
+        console.log(
+            "Recorded audio size:",
+            blob.size,
+            "bytes"
+        );
+
+        console.log(
+            "Maximum microphone level:",
+            maxInputLevel
+        );
+
+        if (blob.size < 1000) {
+
+            selectedFile = null;
+            processButton.disabled = true;
+
+            showStatus(
+                "Very little audio was recorded. Please speak for 3–5 seconds and try again.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (maxInputLevel < 2) {
+
+            selectedFile = null;
+            processButton.disabled = true;
+
+            showStatus(
+                "Your microphone recorded almost no sound. Please select the correct microphone and check the Windows microphone input level.",
+                "error"
+            );
+
+            return;
+        }
+
+        let extension = "webm";
+
+        if (mime.includes("ogg")) {
+            extension = "ogg";
+        } else if (mime.includes("mp4")) {
+            extension = "m4a";
+        }
+
+        selectedFile =
+            new File(
+                [blob],
+                "voxify-recording-" +
+                Date.now() +
+                "." +
+                extension,
+                {
+                    type: mime
+                }
+            );
+
+        showSelectedFile(selectedFile);
+
+        showStatus(
+            "Recording completed successfully.",
+            "success"
+        );
+    }
+
+    function showSelectedFile(file) {
+
+        selectedFile = file;
+
+        fileBox.style.display = "block";
+
+        fileName.textContent =
+            file.name +
+            " (" +
+            Math.round(file.size / 1024) +
+            " KB)";
+
+        const previewUrl =
+            URL.createObjectURL(file);
+
+        audioPreview.src = previewUrl;
+
+        processButton.disabled = false;
+    }
+
+    fileInput.addEventListener("change", event => {
+
+        const file =
+            event.target.files &&
+            event.target.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        showSelectedFile(file);
+
+        showStatus(
+            "Audio file selected successfully.",
+            "success"
+        );
+    });
+
+    recordButton.addEventListener("click", () => {
+
+        if (mediaRecorder &&
+            mediaRecorder.state === "recording") {
+
+            stopRecording();
+
+        } else {
+
+            startRecording();
+        }
+    });
+
+    async function transcribeAudio(file) {
+
+        const formData = new FormData();
+
+        formData.append("file", file);
+
+        const response =
+            await fetch(
+                API_BASE + "/audio/transcribe",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                data?.error?.message ||
+                data?.detail ||
+                "Audio transcription failed."
+            );
+        }
+
+        return data;
+    }
+
+    async function translateText(text, target) {
+
+        const response =
+            await fetch(
+                API_BASE + "/translation/text",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        text: sourceText,
+                        source_language: sourceLanguage,
+                        target_language: selectedTargetLanguage
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                data?.error?.message ||
+                data?.detail ||
+                "Translation failed."
+            );
+        }
+
+        return data;
+    }
+
+    async function generateAudio(text, language) {
+
+        const response =
+            await fetch(
+                API_BASE + "/text-to-audio/generate",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        language: language
+                    })
+                }
+            );
+
+        if (!response.ok) {
+
+            let message =
+                "Text-to-audio generation failed.";
+
+            try {
+
+                const data =
+                    await response.json();
+
+                message =
+                    data?.detail ||
+                    data?.error?.message ||
+                    message;
+
+            } catch (e) {}
+
+            throw new Error(message);
+        }
+
+        return await response.blob();
+    }
+
+    processButton.addEventListener("click", async () => {
+
+        if (!selectedFile) {
+
+            showStatus(
+                "Please upload or record an audio file first.",
+                "error"
+            );
+
+            return;
+        }
+
+        processButton.disabled = true;
+
+        resultBox.style.display = "none";
+        audioOutputBox.style.display = "none";
+
+        try {
+
+            showStatus(
+                "Step 1/3: Detecting spoken language and converting speech to text...",
+                "info"
+            );
+
+            const transcription =
+                await transcribeAudio(selectedFile);
+
+            detectedLanguage.textContent =
+                transcription.detected_language_name +
+                " (" +
+                transcription.detected_language +
+                ")";
+
+            showStatus(
+                "Step 2/3: Translating to the selected language...",
+                "info"
+            );
+
+            const translation =
+                await translateText(
+                    transcription.transcribed_text,
+                    targetLanguage.value
+                );
+
+            resultText.textContent =
+                translation.translated_text;
+
+            resultBox.style.display = "block";
+
+            if (mode === "audio-to-audio") {
+
+                showStatus(
+                    "Step 3/3: Generating translated audio...",
+                    "info"
+                );
+
+                const audioBlob =
+                    await generateAudio(
+                        translation.translated_text,
+                        targetLanguage.value
+                    );
+
+                const audioUrl =
+                    URL.createObjectURL(audioBlob);
+
+                outputAudio.src = audioUrl;
+
+                downloadAudio.href =
+                    audioUrl;
+
+                audioOutputBox.style.display =
+                    "block";
+            }
+
+            showStatus(
+                mode === "audio-to-audio"
+                    ? "Audio translation completed successfully."
+                    : "Audio transcription and translation completed successfully.",
+                "success"
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            showStatus(
+                error.message ||
+                "Something went wrong while processing the audio.",
+                "error"
+            );
+
+        } finally {
+
+            processButton.disabled = false;
+        }
+    });
+
+    loadMicrophones();
+
+    if (navigator.mediaDevices) {
+
+        navigator.mediaDevices.addEventListener(
+            "devicechange",
+            loadMicrophones
+        );
+    }
+</script>
+
+</body>
+</html>
