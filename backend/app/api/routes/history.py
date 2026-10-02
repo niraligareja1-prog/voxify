@@ -11,6 +11,7 @@ router = APIRouter(prefix="/history", tags=["History"])
 
 
 class HistoryCreateRequest(BaseModel):
+    content_type: Optional[str] = None
     source_language: Optional[str] = None
     target_language: Optional[str] = None
     original_text: Optional[str] = None
@@ -25,6 +26,7 @@ def create_history(
     try:
         record = {
             "user_id": user_id,
+            "content_type": data.content_type,
             "source_language": data.source_language,
             "target_language": data.target_language,
             "original_text": data.original_text,
