@@ -445,7 +445,7 @@ function App() {
             {/* DASHBOARD */}
 
             <button
-              className="nav-item active"
+              className="nav-item"
               onClick={() => {
                 window.location.href = "/";
               }}
