@@ -6,7 +6,6 @@ python-dotenv==1.2.3
 python-multipart==0.0.32
 
 # Audio -> Text
-ai4bharat-transliteration==1.1.3
 # SpeechService uses faster-whisper and PyAV directly.
 faster-whisper==1.2.1
 av==17.1.0
