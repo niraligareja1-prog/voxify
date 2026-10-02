@@ -19,6 +19,16 @@ function History() {
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
 
+  const historyType = (item) => {
+    const name = (item?.file_name || item?.original_file_name || "").toLowerCase();
+    const text = (item?.original_text || "").toLowerCase();
+
+    if (item?.content_type === "pdf" || name.endsWith(".pdf")) return "PDF";
+    if (item?.content_type === "audio" || name.match(/\.(mp3|wav|m4a|ogg|webm|flac|aac)$/)) return "Audio";
+    if (item?.content_type === "text" || name.endsWith(".txt") || text) return "Text";
+    return "Translation";
+  };
+
   const getToken = () => {
     return localStorage.getItem("access_token");
   };
@@ -450,6 +460,19 @@ function History() {
                               item.target_language
                             )}
                           </strong>
+
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              padding: "4px 8px",
+                              borderRadius: "999px",
+                              background: "#f1f5f9",
+                              color: "#334155",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {historyType(item)}
+                          </span>
 
                           <span
                             style={{
