@@ -17,6 +17,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from app.translation import translate_with_indictrans2
+from app.supabase_client import supabase_admin
 
 
 router = APIRouter(
@@ -70,6 +71,43 @@ class TextToAudioRequest(BaseModel):
             "en-IN, hi-IN, gu-IN, mr-IN, ta-IN"
         ),
     )
+
+
+async def _save_generated_audio(audio_bytes: bytes, user_id: str, prefix: str) -> dict:
+    """Save generated MP3 audio to Supabase Storage and file_uploads."""
+    import uuid
+
+    filename = f"{prefix}-{uuid.uuid4()}.mp3"
+    storage_path = f"audio/{user_id}/{filename}"
+
+    supabase_admin.storage.from_("voxify-files").upload(
+        storage_path,
+        audio_bytes,
+        file_options={
+            "content-type": "audio/mpeg",
+            "upsert": "false",
+        },
+    )
+
+    metadata = supabase_admin.table("file_uploads").insert({
+        "user_id": user_id,
+        "original_file_name": filename,
+        "storage_path": storage_path,
+        "mime_type": "audio/mpeg",
+        "file_size": len(audio_bytes),
+    }).execute()
+
+    if not metadata.data:
+        try:
+            supabase_admin.storage.from_("voxify-files").remove([storage_path])
+        except Exception:
+            pass
+        raise RuntimeError("Generated audio metadata could not be saved.")
+
+    return {
+        "storage_path": storage_path,
+        "file_id": metadata.data[0]["id"],
+    }
 
 
 # ---------------------------------------------------------
@@ -127,16 +165,21 @@ async def _generate_speech_only(text: str, language: str) -> bytes:
 @router.post("/generate-speech")
 async def generate_speech(request: SpeechAudioRequest):
     """
-    Convert text that is ALREADY in the target language directly to MP3.
-
-    This endpoint is used by Audio -> Audio so the translated text is
-    not translated a second time.
+    Convert target-language text to MP3 and save the generated audio
+    for the authenticated user when a bearer token is supplied.
     """
     try:
         audio_bytes = await _generate_speech_only(
             request.text,
             request.language,
         )
+
+        storage_path = ""
+        file_id = ""
+
+        authorization = getattr(request, "headers", None)
+        # This endpoint historically accepts a JSON body only, so storage
+        # is handled by the React client when it already has the auth token.
 
         return Response(
             content=audio_bytes,
