@@ -273,6 +273,34 @@ def get_download_url(
                 detail="Could not create download URL.",
             )
 
+        # Record the completed download in the downloads table.
+        try:
+            supabase_admin.table("downloads").insert({
+                "user_id": user_id,
+                "file_id": file_record["id"],
+                "file_name": file_record.get("original_file_name"),
+                "storage_path": storage_path,
+                "mime_type": file_record.get("mime_type"),
+            }).execute()
+        except Exception as download_log_error:
+            print(
+                "DOWNLOAD LOG ERROR:",
+                repr(download_log_error),
+            )
+
+        # Also create a simple audit entry in the existing history table.
+        try:
+            supabase_admin.table("history").insert({
+                "user_id": user_id,
+                "module": "storage",
+                "operation": "download",
+            }).execute()
+        except Exception as history_log_error:
+            print(
+                "DOWNLOAD HISTORY LOG ERROR:",
+                repr(history_log_error),
+            )
+
         return {
             "success": True,
             "data": {
