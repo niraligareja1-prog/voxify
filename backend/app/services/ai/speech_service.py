@@ -189,6 +189,48 @@ class SpeechService:
         )
 
         # ----------------------------------------------------
+        # Native-script second pass for Indian languages
+        # ----------------------------------------------------
+        # Whisper can occasionally return Indian-language speech in
+        # Latin transliteration instead of native Indic script.
+        # IndicTrans2 expects the native Indic script.
+        if whisper_language in {"gu", "hi", "mr", "ta"}:
+
+            native_prompts = {
+                "gu": "આજે હું ગુજરાતી ભાષામાં સ્પષ્ટ રીતે વાત કરી રહ્યો છું.",
+                "hi": "आज मैं हिंदी भाषा में स्पष्ट रूप से बात कर रहा हूँ।",
+                "mr": "आज मी मराठी भाषेत स्पष्टपणे बोलत आहे.",
+                "ta": "இன்று நான் தமிழ் மொழியில் தெளிவாக பேசுகிறேன்.",
+            }
+
+            native_segments, _ = model.transcribe(
+                str(path),
+                language=whisper_language,
+                task="transcribe",
+                beam_size=5,
+                best_of=5,
+                vad_filter=True,
+                vad_parameters={"min_silence_duration_ms": 500},
+                temperature=(0.0, 0.2, 0.4),
+                condition_on_previous_text=False,
+                no_speech_threshold=0.6,
+                compression_ratio_threshold=2.0,
+                repetition_penalty=1.15,
+                initial_prompt=native_prompts[whisper_language],
+            )
+
+            native_parts = []
+            for segment in native_segments:
+                segment_text = segment.text.strip()
+                if segment_text:
+                    native_parts.append(segment_text)
+
+            native_text = " ".join(native_parts).strip()
+            if native_text:
+                transcribed_text = native_text
+
+        print(f"Whisper transcription [{whisper_language}]: {transcribed_text}")
+        # ----------------------------------------------------
         # Result
         # ----------------------------------------------------
 
