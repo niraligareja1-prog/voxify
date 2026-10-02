@@ -23,7 +23,7 @@
 </main>
 </div>
 <script>
-const API_BASE_URL="http://127.0.0.1:8000/api/v1";
+const API_BASE_URL=`${window.location.protocol}//${window.location.hostname}:8000/api/v1`;
 function token(){return localStorage.getItem("access_token")||localStorage.getItem("voxify_access_token");}
 function logout(){localStorage.removeItem("access_token");localStorage.removeItem("voxify_access_token");localStorage.removeItem("user_email");localStorage.removeItem("preferred_language");location.replace("/pages/login.html");}
 function typeName(item){const mime=(item.mime_type||"").toLowerCase();if(mime.includes("pdf"))return "PDF";if(mime.startsWith("audio/"))return "Audio";if(mime.startsWith("text/"))return "Text";if(mime.startsWith("image/"))return "Image";if(mime.startsWith("video/"))return "Video";return "File";}
