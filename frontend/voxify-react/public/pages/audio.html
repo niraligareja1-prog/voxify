@@ -953,7 +953,7 @@
         return data;
     }
 
-    async function translateText(text, target) {
+    async function translateText(text, source, target) {
 
         const response =
             await fetch(
@@ -964,9 +964,9 @@
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        text: sourceText,
-                        source_language: sourceLanguage,
-                        target_language: selectedTargetLanguage
+                        text: text,
+                        source_language: source,
+                        target_language: target
                     })
                 }
             );
@@ -1067,6 +1067,7 @@
             const translation =
                 await translateText(
                     transcription.transcribed_text,
+                    transcription.detected_language,
                     targetLanguage.value
                 );
 
