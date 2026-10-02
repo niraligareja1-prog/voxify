@@ -290,6 +290,7 @@ function TextTranslation() {
                 Authorization: `Bearer ${historyToken}`,
               },
               body: JSON.stringify({
+                content_type: "text",
                 source_language: "en-IN",
                 target_language: targetLanguage,
                 original_text: cleanText,
