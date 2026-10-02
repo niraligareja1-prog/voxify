@@ -18,36 +18,62 @@ class RegisterRequest(BaseModel):
 @router.post("/register")
 def register_user(data: RegisterRequest):
     try:
-        response = supabase.auth.sign_up({
+        # Use the backend admin client for registration so development/testing
+        # does not depend on Supabase's email-send rate limit.
+        response = supabase_admin.auth.admin.create_user({
             "email": data.email,
             "password": data.password,
-            "options": {
-                "data": {
-                    "full_name": data.full_name
-                }
-            }
+            "email_confirm": True,
+            "user_metadata": {
+                "full_name": data.full_name
+            },
         })
 
-        if response.user is None:
+        user = getattr(response, "user", None)
+
+        if user is None:
             raise HTTPException(
                 status_code=400,
-                detail="Registration failed"
+                detail="Registration failed. Please try again.",
             )
 
         return {
-            "message": "Registration successful. Please verify your email.",
-            "user_id": response.user.id,
-            "email": response.user.email
+            "message": "Registration successful. You can log in now.",
+            "user_id": user.id,
+            "email": user.email,
         }
 
     except HTTPException:
         raise
 
     except Exception as e:
+        error_message = str(e)
+        lowered = error_message.lower()
+
+        if (
+            "already been registered" in lowered
+            or "already exists" in lowered
+            or "user already registered" in lowered
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail="An account with this email already exists. Please log in.",
+            )
+
+        if "email" in lowered and "invalid" in lowered:
+            raise HTTPException(
+                status_code=400,
+                detail="Please enter a valid email address.",
+            )
+
+        print("REGISTER ERROR:", repr(e))
+
         raise HTTPException(
-            status_code=400,
-            detail=str(e)
+            status_code=500,
+            detail="Registration failed. Please try again.",
         )
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
