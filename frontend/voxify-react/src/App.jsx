@@ -5,7 +5,6 @@ import {
   Languages,
   FileText,
   Mic2,
-  Image,
   History,
   Download,
   Settings,
@@ -21,7 +20,6 @@ import {
   Volume2,
   FileAudio,
   FileSearch,
-  ScanText,
 } from "lucide-react";
 
 import TextToAudio from "./pages/TextToAudio";
@@ -110,6 +108,9 @@ function App() {
     getGreetingKey()
   );
 
+  const [recentHistory, setRecentHistory] = useState([]);
+  const [recentHistoryLoading, setRecentHistoryLoading] = useState(true);
+
 
   /* =======================================================
      TRANSLATIONS
@@ -195,6 +196,36 @@ function App() {
 
     loadProfileLanguage();
 
+    const loadRecentHistory = async () => {
+      try {
+        const historyResponse = await fetch(
+          `${API_BASE_URL}/history`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              Accept: "application/json",
+            },
+          }
+        );
+
+        const historyData = await historyResponse.json();
+
+        if (historyResponse.ok && historyData?.success) {
+          setRecentHistory(
+            Array.isArray(historyData.data)
+              ? historyData.data.slice(0, 5)
+              : []
+          );
+        }
+      } catch (error) {
+        console.error("DASHBOARD HISTORY LOAD ERROR:", error);
+      } finally {
+        setRecentHistoryLoading(false);
+      }
+    };
+
+    loadRecentHistory();
 
     /*
      * Greeting refresh.
@@ -250,42 +281,6 @@ function App() {
 
 
   /* =======================================================
-     DASHBOARD STATS
-  ======================================================= */
-
-  const stats = [
-    {
-      label: t.totalTranslations,
-      value: "0",
-      note: t.allTime,
-      icon: Languages,
-      type: "purple",
-    },
-    {
-      label: t.filesProcessed,
-      value: "0",
-      note: t.thisMonth,
-      icon: FileCheck2,
-      type: "violet",
-    },
-    {
-      label: t.processingTime,
-      value: "0m",
-      note: t.totalUsage,
-      icon: Clock3,
-      type: "green",
-    },
-    {
-      label: t.languages,
-      value: "5",
-      note: t.supported,
-      icon: Globe2,
-      type: "orange",
-    },
-  ];
-
-
-  /* =======================================================
      TRANSLATION SIDEBAR
   ======================================================= */
 
@@ -306,11 +301,6 @@ function App() {
       icon: FileText,
       page: "pdf.html",
     },
-    {
-      name: t.imageTranslation,
-      icon: Image,
-      page: "image.html",
-    },
   ];
 
 
@@ -322,66 +312,44 @@ function App() {
     {
       name: t.textToText,
       icon: Languages,
-      description:
-        "Translate written text between supported languages.",
+      description: "Translate written text between supported languages.",
       page: "text-translation.html",
       mode: "text-to-text",
     },
     {
       name: t.textToAudio,
       icon: Volume2,
-      description:
-        "Translate text and convert the translated result into audio.",
+      description: "Translate text and convert the translated result into audio.",
       page: "text-translation.html",
       mode: "text-to-audio",
     },
     {
       name: t.audioToText,
       icon: FileAudio,
-      description:
-        "Convert spoken audio into translated text.",
+      description: "Convert spoken audio into translated text.",
       page: "audio.html",
       mode: "audio-to-text",
     },
     {
       name: t.audioToAudio,
       icon: Mic2,
-      description:
-        "Translate spoken audio into another language's audio.",
+      description: "Translate spoken audio into another language's audio.",
       page: "audio.html",
       mode: "audio-to-audio",
     },
     {
       name: t.pdfTranslation,
       icon: FileText,
-      description:
-        "Upload a PDF and translate its content.",
+      description: "Upload a PDF and translate its content.",
       page: "pdf.html",
       mode: "pdf-translation",
     },
     {
       name: t.pdfSummarise,
       icon: FileSearch,
-      description:
-        "Upload a PDF and generate a concise summary.",
+      description: "Upload a PDF and generate a concise summary.",
       page: "pdf-summarise.html",
       mode: "",
-    },
-    {
-      name: t.imageTranslation,
-      icon: ScanText,
-      description:
-        "Extract text from an image and translate it.",
-      page: "image.html",
-      mode: "image-translation",
-    },
-    {
-      name: t.imageSummarise,
-      icon: Image,
-      description:
-        "Process an image and generate a useful summary.",
-      page: "image.html",
-      mode: "image-summarise",
     },
   ];
 
@@ -733,9 +701,9 @@ function App() {
 
           {/* HERO */}
 
-          <section className="hero-section">
+          <section className="hero-section compact-hero">
 
-            <div className="hero-copy">
+            <div className="hero-copy compact-hero-copy">
 
               <h1>
 
@@ -806,49 +774,6 @@ function App() {
               </div>
 
             </div>
-
-          </section>
-
-
-          {/* STATS */}
-
-          <section className="stats-grid">
-
-            {stats.map((stat) => {
-
-              const Icon = stat.icon;
-
-              return (
-                <div
-                  className="stat-card"
-                  key={stat.label}
-                >
-
-                  <div
-                    className={`stat-icon ${stat.type}`}
-                  >
-                    <Icon size={21} />
-                  </div>
-
-                  <div className="stat-info">
-
-                    <span>
-                      {stat.label}
-                    </span>
-
-                    <strong>
-                      {stat.value}
-                    </strong>
-
-                    <small>
-                      {stat.note}
-                    </small>
-
-                  </div>
-
-                </div>
-              );
-            })}
 
           </section>
 
@@ -961,59 +886,63 @@ function App() {
           {/* RECENT ACTIVITY */}
 
           <section className="section-block">
-
             <div className="section-header">
-
               <div>
-
-                <h2>
-                  {t.recentActivity}
-                </h2>
-
-                <p>
-                  {t.latestTranslations}
-                </p>
-
+                <h2>{t.recentActivity}</h2>
+                <p>{t.latestTranslations}</p>
               </div>
-
-            </div>
-
-
-            <div className="empty-state">
-
-              <div className="empty-icon">
-
-                <History size={26} />
-
-              </div>
-
-              <h3>
-                {t.noActivity}
-              </h3>
-
-              <p>
-                {t.startFirstTranslation}
-              </p>
-
 
               <button
-                className="secondary-button"
-                onClick={() =>
-                  goToPage(
-                    "text-translation.html",
-                    "text-to-text"
-                  )
-                }
+                className="view-all"
+                onClick={() => {
+                  window.location.href = "/history";
+                }}
               >
-
-                {t.startTranslating}
-
-                <ArrowUpRight size={17} />
-
+                View all
+                <ArrowUpRight size={16} />
               </button>
-
             </div>
 
+            {recentHistoryLoading ? (
+              <div className="empty-state">
+                <div className="empty-icon">
+                  <History size={26} />
+                </div>
+                <h3>Loading recent activity...</h3>
+              </div>
+            ) : recentHistory.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">
+                  <History size={26} />
+                </div>
+                <h3>No activity yet</h3>
+                <p>Start a translation and your latest activity will appear here.</p>
+              </div>
+            ) : (
+              <div className="tools-grid recent-activity-grid">
+                {recentHistory.map((item) => (
+                  <div
+                    key={item.id}
+                    className="tool-card recent-activity-card"
+                  >
+                    <div className="tool-icon">
+                      <History size={23} />
+                    </div>
+                    <div className="tool-content">
+                      <h3>
+                        {item.source_language || "Source"} → {item.target_language || "Target"}
+                      </h3>
+                      <p>
+                        {item.translated_text || item.original_text || "Translation completed"}
+                      </p>
+                      <small style={{ color: "#7b879b" }}>
+                        {item.content_type || "translation"} · {item.status || "completed"}
+                      </small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
         </div>
