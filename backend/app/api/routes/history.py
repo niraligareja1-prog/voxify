@@ -52,6 +52,19 @@ def create_history(
                 detail="History record was not created.",
             )
 
+        # Keep the existing audit/history table in sync as well.
+        try:
+            supabase_admin.table("history").insert({
+                "user_id": user_id,
+                "module": data.content_type or "translation",
+                "operation": "translate",
+            }).execute()
+        except Exception as audit_error:
+            print(
+                "TRANSLATION AUDIT LOG ERROR:",
+                repr(audit_error),
+            )
+
         return {
             "success": True,
             "message": "History created successfully.",
