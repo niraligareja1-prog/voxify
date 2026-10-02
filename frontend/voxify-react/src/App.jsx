@@ -9,7 +9,6 @@ import {
   Download,
   Settings,
   Bell,
-  Search,
   ArrowUpRight,
   Globe2,
   FileCheck2,
@@ -633,23 +632,6 @@ function App() {
 
 
           <div className="topbar-actions">
-
-            {/* SEARCH */}
-
-            <div className="search-box">
-
-              <Search size={19} />
-
-              <input
-                placeholder="Search anything..."
-              />
-
-              <span className="shortcut">
-                ⌘ K
-              </span>
-
-            </div>
-
 
             {/* NOTIFICATION */}
 
