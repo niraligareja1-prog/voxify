@@ -231,8 +231,7 @@ function History() {
             <button
               className="nav-item"
               onClick={() => {
-                window.location.href =
-                  "/pages/text-translation.html";
+                window.location.href = "/";
               }}
             >
               <FileText size={20} />
