@@ -4,6 +4,11 @@ from typing import Optional
 import av
 from faster_whisper import WhisperModel
 
+try:
+    from ai4bharat.transliteration import XlitEngine
+except ImportError:
+    XlitEngine = None
+
 
 # ============================================================
 # PyAV compatibility
@@ -27,6 +32,7 @@ av.open = _compat_av_open
 class SpeechService:
 
     _model: Optional[WhisperModel] = None
+    _xlit_engine = None
 
     # More accurate Whisper model for short recordings.
     # tiny can hallucinate on 1-3 second clips.
@@ -228,6 +234,49 @@ class SpeechService:
             native_text = " ".join(native_parts).strip()
             if native_text:
                 transcribed_text = native_text
+
+        # ----------------------------------------------------
+        # Roman Indic -> native Indic normalization
+        # ----------------------------------------------------
+        # Whisper may recognize Gujarati/Hindi/etc. correctly but emit
+        # the result in Latin characters. IndicTrans2 expects native script.
+        if whisper_language in {"gu", "hi", "mr", "ta"}:
+            latin_chars = sum(
+                ch.isascii() and ch.isalpha()
+                for ch in transcribed_text
+            )
+            native_chars = sum(
+                (not ch.isascii()) and ch.isalpha()
+                for ch in transcribed_text
+            )
+
+            if latin_chars > native_chars:
+                if XlitEngine is None:
+                    print("IndicXlit is not installed; keeping Whisper text.")
+                else:
+                    try:
+                        if cls._xlit_engine is None:
+                            print("Loading AI4Bharat IndicXlit...")
+                            cls._xlit_engine = XlitEngine(
+                                lang2use=whisper_language
+                            )
+
+                        roman_text = transcribed_text
+                        converted = cls._xlit_engine.translit_sentence(
+                            roman_text,
+                            lang_code=whisper_language,
+                            beam_width=10,
+                        )
+
+                        if isinstance(converted, str) and converted.strip():
+                            print(
+                                f'IndicXlit [{whisper_language}]: '
+                                f'"{roman_text}" -> "{converted}"'
+                            )
+                            transcribed_text = converted.strip()
+
+                    except Exception as error:
+                        print(f"IndicXlit normalization failed: {error}")
 
         print(f"Whisper transcription [{whisper_language}]: {transcribed_text}")
         # ----------------------------------------------------
