@@ -831,6 +831,7 @@ async def translate_pdf_file(
             from app.supabase_client import supabase_admin
             supabase_admin.table("translation_history").insert({
                 "user_id": str(current_user.id),
+                "content_type": "pdf",
                 "source_language": source_language,
                 "target_language": target_language,
                 "original_text": original_text,
