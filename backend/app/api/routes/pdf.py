@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import base64
 
+import uuid
+
 import re
 
 import fitz
@@ -671,38 +673,72 @@ async def translate_pdf_file(
 
 
     # ========================================================
+    # SAVE TRANSLATED PDF TO SUPABASE STORAGE
+    # ========================================================
 
+    storage_path = None
+    uploaded_file_id = None
+    current_user = None
+
+    try:
+        from app.supabase_client import supabase_admin
+
+        authorization = request.headers.get("Authorization", "")
+        if authorization.startswith("Bearer "):
+            token = authorization.split(" ", 1)[1].strip()
+            if token:
+                user_response = supabase_admin.auth.get_user(token)
+                current_user = getattr(user_response, "user", None)
+
+        if current_user:
+            user_id = str(current_user.id)
+            output_filename = translated_filename(file.filename)
+            storage_path = f"pdf/{user_id}/{uuid.uuid4()}_{output_filename}"
+
+            supabase_admin.storage.from_("voxify-files").upload(
+                storage_path,
+                translated_bytes,
+                file_options={
+                    "content-type": "application/pdf",
+                    "upsert": "false",
+                },
+            )
+
+            file_record = supabase_admin.table("file_uploads").insert({
+                "user_id": user_id,
+                "original_file_name": output_filename,
+                "storage_path": storage_path,
+                "mime_type": "application/pdf",
+                "file_size": len(translated_bytes),
+            }).execute()
+
+            if not file_record.data:
+                try:
+                    supabase_admin.storage.from_("voxify-files").remove([storage_path])
+                except Exception:
+                    pass
+                raise RuntimeError("Translated PDF metadata could not be saved.")
+
+            uploaded_file_id = file_record.data[0].get("id")
+
+    except Exception as storage_error:
+        print("PDF STORAGE SAVE ERROR:", repr(storage_error))
+        raise HTTPException(
+            status_code=500,
+            detail="PDF was translated, but the translated file could not be saved to Supabase Storage.",
+        ) from storage_error
+
+    # ========================================================
     # CONVERT PDF TO BASE64
-
     # ========================================================
 
-
-
-    translated_base64 = base64.b64encode(
-
-        translated_bytes
-
-    ).decode("ascii")
-
-
+    translated_base64 = base64.b64encode(translated_bytes).decode("ascii")
 
     # ========================================================
-
     # OUTPUT FILENAME
-
     # ========================================================
 
-
-
-    output_filename = translated_filename(
-
-        file.filename
-
-    )
-
-
-
-    # ========================================================
+    output_filename = translated_filename(file.filename)
 
     # LANGUAGE DISPLAY NAMES
 
@@ -752,29 +788,15 @@ async def translate_pdf_file(
 
     # Save successful PDF translation to the shared history table.
     try:
-        from app.supabase_client import supabase_admin
-        from app.core.auth_dependency import get_current_user_id
-    except Exception:
-        supabase_admin = None
-        get_current_user_id = None
-
-    # PDF route currently does not require auth, so history is saved only
-    # when a user token is available through the request context in the app.
-    try:
-        if supabase_admin is not None:
-            authorization = request.headers.get("Authorization", "")
-            if authorization.startswith("Bearer "):
-                token = authorization.split(" ", 1)[1].strip()
-                user_response = supabase_admin.auth.get_user(token)
-                user = getattr(user_response, "user", None)
-                if user:
-                    supabase_admin.table("translation_history").insert({
-                        "user_id": str(user.id),
-                        "source_language": source_language,
-                        "target_language": target_language,
-                        "original_text": original_text,
-                        "translated_text": translated_text,
-                    }).execute()
+        if current_user:
+            from app.supabase_client import supabase_admin
+            supabase_admin.table("translation_history").insert({
+                "user_id": str(current_user.id),
+                "source_language": source_language,
+                "target_language": target_language,
+                "original_text": original_text,
+                "translated_text": translated_text,
+            }).execute()
     except Exception as history_error:
         print("PDF HISTORY SAVE ERROR:", repr(history_error))
 
@@ -811,6 +833,10 @@ async def translate_pdf_file(
 
 
             "translated_text": translated_text,
+
+            "storage_path": storage_path,
+            "file_id": uploaded_file_id,
+            "storage_saved": bool(storage_path),
 
 
 
