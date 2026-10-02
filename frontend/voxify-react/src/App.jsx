@@ -7,7 +7,7 @@ import {
   Mic2,
   History,
   Download,
-  Settings,
+  LogOut,
   Bell,
   ArrowUpRight,
   Globe2,
@@ -559,7 +559,7 @@ function App() {
               window.location.replace("/pages/login.html");
             }}
           >
-            <Settings size={20} />
+            <LogOut size={20} />
             <span>Logout</span>
           </button>
 
