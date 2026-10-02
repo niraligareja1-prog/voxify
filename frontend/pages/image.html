@@ -848,7 +848,7 @@
 
     translate.addEventListener(
         "click",
-        () => {
+        async () => {
 
             if (!selectedFile) {
                 showError(
@@ -857,9 +857,99 @@
                 return;
             }
 
-            showError(
-                "Image translation backend will be connected in the next step."
-            );
+            clearError();
+            result.style.display = "none";
+            translate.disabled = true;
+            translate.textContent = "Translating Image...";
+
+            try {
+
+                const sourceLanguage =
+                    document.getElementById(
+                        "sourceLanguage"
+                    ).value;
+
+                const targetLanguage =
+                    document.getElementById(
+                        "targetLanguage"
+                    ).value;
+
+                const formData = new FormData();
+
+                formData.append(
+                    "file",
+                    selectedFile
+                );
+
+                formData.append(
+                    "source_language",
+                    sourceLanguage
+                );
+
+                formData.append(
+                    "target_language",
+                    targetLanguage
+                );
+
+                const response = await fetch(
+                    "http://127.0.0.1:8000/api/v1/image/translate",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+                const data =
+                    await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.detail ||
+                        data.message ||
+                        "Image translation failed."
+                    );
+                }
+
+                document.getElementById(
+                    "original"
+                ).textContent =
+                    data.original_text ||
+                    data.extracted_text ||
+                    "";
+
+                document.getElementById(
+                    "translated"
+                ).textContent =
+                    data.translated_text ||
+                    "";
+
+                result.style.display = "block";
+
+                result.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            } catch (err) {
+
+                console.error(
+                    "Image translation error:",
+                    err
+                );
+
+                showError(
+                    err.message ||
+                    "Image translation failed. Please try again."
+                );
+
+            } finally {
+
+                translate.disabled =
+                    !selectedFile;
+
+                translate.textContent =
+                    "Translate Image";
+            }
         }
     );
 
