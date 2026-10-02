@@ -724,7 +724,7 @@ function Audio() {
 
       const audioResponse =
         await fetch(
-          `${API_BASE_URL}/text-to-audio/generate`,
+          `${API_BASE_URL}/text-to-audio/generate-speech`,
           {
             method: "POST",
             headers: {
