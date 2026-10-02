@@ -156,6 +156,66 @@ async def upload_file(
         )
 
 
+@router.get("/files")
+def list_files(
+    user_id: str = Depends(get_current_user_id),
+):
+    """List the authenticated user's stored files with signed download URLs."""
+    try:
+        response = (
+            supabase_admin
+            .table("file_uploads")
+            .select("*")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .execute()
+        )
+
+        records = response.data if response is not None else []
+        items = []
+
+        for record in records:
+            signed_url = None
+            storage_path = record.get("storage_path")
+
+            if storage_path:
+                signed_response = (
+                    supabase_admin
+                    .storage
+                    .from_(BUCKET_NAME)
+                    .create_signed_url(storage_path, 3600)
+                )
+
+                if isinstance(signed_response, dict):
+                    signed_url = (
+                        signed_response.get("signedURL")
+                        or signed_response.get("signedUrl")
+                        or signed_response.get("signed_url")
+                    )
+
+            items.append({
+                "id": record.get("id"),
+                "file_name": record.get("original_file_name"),
+                "storage_path": storage_path,
+                "mime_type": record.get("mime_type"),
+                "file_size": record.get("file_size"),
+                "created_at": record.get("created_at"),
+                "download_url": signed_url,
+                "expires_in": 3600,
+            })
+
+        return {
+            "success": True,
+            "data": items,
+        }
+
+    except Exception as exc:
+        print("STORAGE LIST ERROR:", repr(exc))
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to load stored files.",
+        )
+
 @router.get("/download/{file_id}")
 def get_download_url(
     file_id: str,
