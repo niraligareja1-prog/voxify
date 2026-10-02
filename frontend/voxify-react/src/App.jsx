@@ -28,6 +28,7 @@ import HistoryPage from "./pages/History";
 import Profile from "./pages/Profile";
 
 import { getTranslations } from "./i18n";
+import { API_BASE_URL } from "./config";
 
 import "./App.css";
 
@@ -36,7 +37,6 @@ import "./App.css";
    API
 ========================================================= */
 
-const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
 
 
 /* =========================================================
