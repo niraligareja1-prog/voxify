@@ -765,6 +765,7 @@ function Audio() {
                 Authorization: `Bearer ${authToken}`,
               },
               body: JSON.stringify({
+                content_type: "audio",
                 source_language: detected,
                 target_language: targetLanguage,
                 original_text: text,
