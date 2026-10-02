@@ -28,8 +28,9 @@ class SpeechService:
 
     _model: Optional[WhisperModel] = None
 
-    # FASTEST Whisper model
-    MODEL_SIZE = "tiny"
+    # More accurate Whisper model for short recordings.
+    # tiny can hallucinate on 1-3 second clips.
+    MODEL_SIZE = "base"
 
     LANGUAGE_MAP = {
         "en": ("en-IN", "English"),
@@ -94,8 +95,8 @@ class SpeechService:
         segments, info = model.transcribe(
             str(path),
 
-            beam_size=1,
-            best_of=1,
+            beam_size=5,
+            best_of=5,
 
             # VAD
             vad_filter=True,
@@ -112,7 +113,7 @@ class SpeechService:
             # Automatic language detection
             language=None,
 
-            condition_on_previous_text=False,
+            condition_on_previous_text=True,
 
             no_speech_threshold=0.6,
 
