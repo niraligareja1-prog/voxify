@@ -18,7 +18,7 @@ import fitz
 
 
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 
 from fastapi.responses import JSONResponse
 
@@ -319,6 +319,8 @@ def translated_filename(filename: str) -> str:
 @router.post("/file")
 
 async def translate_pdf_file(
+
+    request: Request,
 
     file: UploadFile = File(...),
 
@@ -747,6 +749,34 @@ async def translate_pdf_file(
     # ========================================================
 
 
+
+    # Save successful PDF translation to the shared history table.
+    try:
+        from app.supabase_client import supabase_admin
+        from app.core.auth_dependency import get_current_user_id
+    except Exception:
+        supabase_admin = None
+        get_current_user_id = None
+
+    # PDF route currently does not require auth, so history is saved only
+    # when a user token is available through the request context in the app.
+    try:
+        if supabase_admin is not None:
+            authorization = request.headers.get("Authorization", "")
+            if authorization.startswith("Bearer "):
+                token = authorization.split(" ", 1)[1].strip()
+                user_response = supabase_admin.auth.get_user(token)
+                user = getattr(user_response, "user", None)
+                if user:
+                    supabase_admin.table("translation_history").insert({
+                        "user_id": str(user.id),
+                        "source_language": source_language,
+                        "target_language": target_language,
+                        "original_text": original_text,
+                        "translated_text": translated_text,
+                    }).execute()
+    except Exception as history_error:
+        print("PDF HISTORY SAVE ERROR:", repr(history_error))
 
     return JSONResponse(
 
