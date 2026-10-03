@@ -17,6 +17,8 @@ from typing import Dict, List, Tuple
 
 import fitz
 
+from app.translation import translate_with_indictrans2
+
 # ============================================================
 
 # LANGUAGE CONFIG
@@ -528,15 +530,16 @@ def _google_translate(
     target: str,
 ) -> str:
     """
-    Compatibility wrapper used by the existing PDF pipeline.
+    Compatibility wrapper for the PDF translation pipeline.
 
-    GoogleTranslator is intentionally no longer called because
-    the current environment is receiving HTTP 429 responses.
+    PDF translation uses the same AI4Bharat IndicTrans2 engine as
+    the main Voxify text translation feature. The old function name
+    is kept so the rest of the PDF service remains compatible.
 
-    The old function name is kept so the rest of pdf_service.py
-    does not need to change.
-
-    Translation is performed through the MyMemory REST API.
+    The input text is split into smaller chunks because IndicTrans2
+    has a bounded token window. Each chunk is translated locally,
+    so PDF translation does not depend on the rate-limited MyMemory
+    service.
     """
 
     if not text:
@@ -545,55 +548,37 @@ def _google_translate(
     if source == target:
         return text
 
-    chunks = _split_mymemory_chunks(
-        text,
-        max_bytes=450,
-    )
+    language_codes = {
+        "en": "en-IN",
+        "hi": "hi-IN",
+        "gu": "gu-IN",
+        "mr": "mr-IN",
+        "ta": "ta-IN",
+    }
 
-    if not chunks:
-        return ""
+    source_code = language_codes.get(source)
+    target_code = language_codes.get(target)
 
+    if not source_code or not target_code:
+        raise ValueError(
+            f"Unsupported PDF translation pair: {source}->{target}"
+        )
+
+    chunks = split_for_translation(text, max_chars=1200)
     translated_chunks: List[str] = []
 
     for chunk in chunks:
-        last_error = None
+        translated = translate_with_indictrans2(
+            chunk,
+            source_code,
+            target_code,
+        )
 
-        for attempt in range(2):
-            try:
-                translated = _mymemory_translate_request(
-                    chunk,
-                    source,
-                    target,
-                )
+        if translated:
+            translated_chunks.append(translated.strip())
 
-                translated_chunks.append(
-                    translated
-                )
+    return "\\n\\n".join(translated_chunks).strip()
 
-                # Prevent a rapid burst of requests for PDFs
-                # containing many small text blocks.
-                time.sleep(0.15)
-
-                last_error = None
-                break
-
-            except Exception as exc:
-                last_error = exc
-
-                if attempt == 0:
-                    time.sleep(0.75)
-
-        if last_error is not None:
-            raise RuntimeError(
-                "MyMemory translation failed. "
-                f"Last error: {last_error}"
-            )
-
-    return " ".join(
-        part.strip()
-        for part in translated_chunks
-        if part.strip()
-    )
 # ============================================================
 
 # BATCH TRANSLATION
@@ -603,494 +588,51 @@ def _google_translate(
 
 
 def translate_blocks(
-
     texts: List[str],
-
     source_language: str,
-
     target_language: str,
-
 ) -> List[str]:
-
     """
+    Translate PDF text blocks in their original order.
 
-    Translate multiple PDF text blocks using as few
-
-    translation requests as possible.
-
-
-
-    Several blocks are combined into one request using
-
-    stable markers.
-
+    Duplicate blocks are cached locally to reduce model calls, while
+    each unique block is translated independently so internal PDF
+    markers cannot be changed by the translation model.
     """
-
-
 
     if not texts:
-
         return []
 
-
-
     source = LANGUAGE_MAP.get(source_language)
-
     target = LANGUAGE_MAP.get(target_language)
 
-
-
     if not source or not target:
-
-        raise ValueError(
-
-            "Unsupported PDF translation language."
-
-        )
-
-
+        raise ValueError("Unsupported PDF translation language.")
 
     if source == target:
-
         return texts[:]
-
-
-
-    # --------------------------------------------------------
-
-    # Cache duplicate blocks.
-
-    # --------------------------------------------------------
-
-
-
-    cache: Dict[str, str] = {}
-
-
-
-    unique_texts: List[str] = []
-
-
-
-    for text in texts:
-
-        if text not in cache:
-
-            unique_texts.append(text)
-
-
-
-    # --------------------------------------------------------
-
-    # Translate in batches.
-
-    # --------------------------------------------------------
-
-
 
     translated_map: Dict[str, str] = {}
 
-
-
-    batch: List[Tuple[int, str]] = []
-
-    batch_chars = 0
-
-
-
-    # Keep batches reasonably small.
-
-    MAX_BATCH_CHARS = 2800
-
-    MAX_BATCH_BLOCKS = 8
-
-
-
-    def flush_batch() -> None:
-
-        nonlocal batch
-
-        nonlocal batch_chars
-
-
-
-        if not batch:
-
-            return
-
-
-
-        # ----------------------------------------------------
-
-        # Create stable markers.
-
-        # ----------------------------------------------------
-
-
-
-        pieces: List[str] = []
-
-
-
-        for index, text in batch:
-
-            marker = f"VOXIFYBLOCK{index}ZX"
-
-
-
-            pieces.append(
-
-                f"{marker}\n{text}"
-
-            )
-
-
-
-        combined = "\n\n".join(pieces)
-
-
-
-        try:
-
-            translated_combined = _google_translate(
-
-                combined,
-
-                source,
-
-                target,
-
-            )
-
-
-
-        except Exception:
-
-            # If the batch fails, try each block individually.
-
-            for index, text in batch:
-
-                try:
-
-                    translated = _google_translate(
-
-                        text,
-
-                        source,
-
-                        target,
-
-                    )
-
-
-
-                except Exception as exc:
-
-                    raise exc
-
-
-
-                translated_map[text] = translated
-
-
-
-            batch = []
-
-            batch_chars = 0
-
-            return
-
-
-
-        # ----------------------------------------------------
-
-        # Extract each translated block.
-
-        # ----------------------------------------------------
-
-
-
-        found_any = False
-
-
-
-        for position, (index, original_text) in enumerate(
-
-            batch
-
-        ):
-
-            marker = f"VOXIFYBLOCK{index}ZX"
-
-
-
-            pattern = re.escape(marker)
-
-
-
-            current_match = re.search(
-
-                pattern,
-
-                translated_combined,
-
-                flags=re.IGNORECASE,
-
-            )
-
-
-
-            if not current_match:
-
-                continue
-
-
-
-            found_any = True
-
-
-
-            start = current_match.end()
-
-
-
-            # Find next marker.
-
-            next_marker = None
-
-
-
-            if position + 1 < len(batch):
-
-                next_index = batch[
-
-                    position + 1
-
-                ][0]
-
-
-
-                next_marker = (
-
-                    f"VOXIFYBLOCK{next_index}ZX"
-
-                )
-
-
-
-            if next_marker:
-
-                next_match = re.search(
-
-                    re.escape(next_marker),
-
-                    translated_combined[start:],
-
-                    flags=re.IGNORECASE,
-
-                )
-
-
-
-                if next_match:
-
-                    end = (
-
-                        start
-
-                        + next_match.start()
-
-                    )
-
-
-
-                    translated_text = (
-
-                        translated_combined[
-
-                            start:end
-
-                        ]
-
-                    )
-
-
-
-                else:
-
-                    translated_text = (
-
-                        translated_combined[start:]
-
-                    )
-
-
-
-            else:
-
-                translated_text = (
-
-                    translated_combined[start:]
-
-                )
-
-
-
-            translated_text = clean_text(
-
-                translated_text
-
-            )
-
-
-
-            if not translated_text:
-
-                translated_text = original_text
-
-
-
-            translated_map[
-
-                original_text
-
-            ] = translated_text
-
-
-
-        # ----------------------------------------------------
-
-        # If markers were not preserved, retry individually.
-
-        # ----------------------------------------------------
-
-
-
-        if not found_any:
-
-            for index, text in batch:
-
-                translated = _google_translate(
-
-                    text,
-
-                    source,
-
-                    target,
-
-                )
-
-
-
-                translated_map[text] = translated
-
-
-
-        batch = []
-
-        batch_chars = 0
-
-
-
-    # --------------------------------------------------------
-
-    # Build batches.
-
-    # --------------------------------------------------------
-
-
-
-    for index, text in enumerate(unique_texts):
-
-
-
-        text_length = len(text)
-
-
-
-        should_flush = (
-
-            batch
-
-            and (
-
-                batch_chars + text_length
-
-                > MAX_BATCH_CHARS
-
-                or len(batch)
-
-                >= MAX_BATCH_BLOCKS
-
-            )
-
-        )
-
-
-
-        if should_flush:
-
-            flush_batch()
-
-
-
-        batch.append(
-
-            (
-
-                index,
-
-                text,
-
-            )
-
-        )
-
-
-
-        batch_chars += text_length
-
-
-
-    flush_batch()
-
-
-
-    # --------------------------------------------------------
-
-    # Return translations in original order.
-
-    # --------------------------------------------------------
-
-
-
-    result: List[str] = []
-
-
-
     for text in texts:
+        if text in translated_map:
+            continue
 
-        translated = translated_map.get(
+        cleaned = clean_text(text)
+        if not cleaned:
+            translated_map[text] = ""
+            continue
 
-            text,
-
-            text,
-
+        translated_map[text] = _google_translate(
+            cleaned,
+            source,
+            target,
         )
 
-
-
-        result.append(
-
-            translated
-
-        )
-
-
-
-    return result
-
-
+    return [
+        translated_map.get(text, text)
+        for text in texts
+    ]
 
 
 
