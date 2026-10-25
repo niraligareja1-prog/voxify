@@ -6,8 +6,8 @@ python-dotenv==1.2.3
 python-multipart==0.0.32
 
 # Text -> Audio
-# Fixes Microsoft's October 2026 Edge Read Aloud endpoint/token change.
-edge-tts==7.3.0
+# Edge TTS 7.3.x includes updates for the current Microsoft Read Aloud handshake.
+edge-tts==7.3.1
 
 # Audio -> Text
 # SpeechService uses faster-whisper and PyAV directly.
