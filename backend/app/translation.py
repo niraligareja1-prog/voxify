@@ -284,6 +284,60 @@ def translate_with_indictrans2(
     return translated_text
 
 
+def translate_batch_with_indictrans2(
+    texts: list[str],
+    source_language: str,
+    target_language: str,
+) -> list[str]:
+    """Translate multiple short PDF blocks in one model generation batch."""
+    if not texts:
+        return []
+
+    source_code = get_model_language(source_language)
+    target_code = get_model_language(target_language)
+    if source_language == target_language:
+        return [text.strip() for text in texts]
+
+    _, model_name = get_model_type(source_language, target_language)
+    tokenizer, model = load_model(model_name)
+
+    processed = IP.preprocess_batch(
+        [text.strip() for text in texts],
+        src_lang=source_code,
+        tgt_lang=target_code,
+        visualize=False,
+    )
+    inputs = tokenizer(
+        processed,
+        padding=True,
+        truncation=True,
+        max_length=MAX_INPUT_TOKENS,
+        return_tensors="pt",
+    )
+    inputs = {key: value.to(DEVICE) for key, value in inputs.items()}
+
+    with torch.inference_mode():
+        generated = model.generate(
+            **inputs,
+            use_cache=True,
+            max_length=MAX_OUTPUT_TOKENS,
+            num_beams=5,
+            num_return_sequences=1,
+        )
+
+    with tokenizer.as_target_tokenizer():
+        decoded = tokenizer.batch_decode(
+            generated,
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=True,
+        )
+
+    return [
+        value.strip()
+        for value in IP.postprocess_batch(decoded, lang=target_code)
+    ]
+
+
 # ============================================================
 # BACKWARD-COMPATIBLE WRAPPER
 # ============================================================
