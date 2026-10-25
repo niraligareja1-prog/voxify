@@ -17,7 +17,7 @@ from typing import Dict, List, Tuple
 
 import fitz
 
-from app.translation import translate_with_indictrans2
+from app.translation import translate_batch_with_indictrans2
 
 # ============================================================
 
@@ -612,22 +612,53 @@ def translate_blocks(
     if source == target:
         return texts[:]
 
-    translated_map: Dict[str, str] = {}
+    # Deduplicate identical blocks, then translate short chunks in batches.
+    # Batch size 4 is conservative for CPU-only machines and reduces model
+    # invocation overhead without changing the beam-search quality setting.
+    unique_texts: List[str] = []
+    chunks_by_text: Dict[str, List[str]] = {}
 
+    for text in texts:
+        if text in chunks_by_text:
+            continue
+        cleaned = clean_text(text)
+        chunks = split_for_translation(cleaned, max_chars=1200) if cleaned else []
+        chunks_by_text[text] = chunks
+        unique_texts.extend(chunks)
+
+    translated_chunks: List[str] = []
+    batch_size = 4
+    started = time.perf_counter()
+
+    for offset in range(0, len(unique_texts), batch_size):
+        batch = unique_texts[offset:offset + batch_size]
+        translated_chunks.extend(
+            translate_batch_with_indictrans2(
+                batch,
+                source_language,
+                target_language,
+            )
+        )
+
+    # Rebuild each original block from its translated chunks in order.
+    translated_map: Dict[str, str] = {}
+    cursor = 0
     for text in texts:
         if text in translated_map:
             continue
+        chunks = chunks_by_text[text]
+        count = len(chunks)
+        translated_map[text] = "\\n\\n".join(
+            item.strip() for item in translated_chunks[cursor:cursor + count]
+            if item.strip()
+        ).strip()
+        cursor += count
 
-        cleaned = clean_text(text)
-        if not cleaned:
-            translated_map[text] = ""
-            continue
-
-        translated_map[text] = _google_translate(
-            cleaned,
-            source,
-            target,
-        )
+    print(
+        "PDF block translation:",
+        f"{len(texts)} blocks, {len(unique_texts)} unique chunks,",
+        f"batch_size={batch_size}, elapsed={time.perf_counter() - started:.2f}s",
+    )
 
     return [
         translated_map.get(text, text)
@@ -1751,6 +1782,7 @@ def translate_pdf(
 
 
 
+    pipeline_started = time.perf_counter()
     try:
 
 
@@ -1825,6 +1857,7 @@ def translate_pdf(
 
 
 
+        save_started = time.perf_counter()
         output = document.tobytes(
 
             garbage=4,
@@ -1833,6 +1866,11 @@ def translate_pdf(
 
             clean=True,
 
+        )
+        print(
+            "PDF translation pipeline:",
+            f"pages={document.page_count}, total_elapsed={time.perf_counter() - pipeline_started:.2f}s,",
+            f"save_elapsed={time.perf_counter() - save_started:.2f}s",
         )
 
 
