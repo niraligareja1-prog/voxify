@@ -5,6 +5,10 @@ pydantic-settings==2.15.0
 python-dotenv==1.2.3
 python-multipart==0.0.32
 
+# Text -> Audio
+# Fixes Microsoft's October 2026 Edge Read Aloud endpoint/token change.
+edge-tts==7.3.0
+
 # Audio -> Text
 # SpeechService uses faster-whisper and PyAV directly.
 faster-whisper==1.2.1
